@@ -1,0 +1,164 @@
+package Commands;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+
+import de.Ganto.SkyPvPManager.Main;
+
+public class COMMAND_Spawn implements CommandExecutor {
+
+	private Main plugin;
+
+	public COMMAND_Spawn(Main main) {
+		this.plugin = main;
+	}
+	
+
+
+	@Override
+	public boolean onCommand(CommandSender sender, Command cmd, String label,String[] args) {
+		Player p = (Player) sender;
+		if(args.length == 0){
+			File file = new File("plugins/SkyPvPManager/Spawn.yml");
+			YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+			if(file.exists()){
+				if(cfg.contains("Spawn" + "." + "world") & cfg.contains("Spawn" + "." + ".x") & cfg.contains("Spawn" + "." + ".y") & cfg.contains("Spawn" + "." + ".z") & cfg.contains("Spawn" + "." + ".yaw") & cfg.contains("Spawn" + "." + ".pitch")){
+					
+					
+					File file2 = new File("plugins/SkyPvPManager/messages.yml");
+					YamlConfiguration cfg2 = YamlConfiguration.loadConfiguration(file2);
+					if(!p.hasPermission("skypvp.owner")){
+					if(plugin.notMove.contains(p)){
+						p.sendMessage(cfg2.getString("Prefix").replace("&", "§") + "§cDu bist bereits am teleportieren!");
+						return true;
+					}else{
+						p.sendMessage(cfg2.getString("Prefix").replace("&", "§") + "§cDu wirst in 3 Sekunden zum Spawn teleportiert!");
+						p.sendMessage(cfg2.getString("Prefix").replace("&", "§") + "§cBewege dich nicht!");
+						plugin.notMove.add(p);
+						Location loc = new Location(p.getWorld(), p.getLocation().getX(), p.getLocation().getY(), p.getLocation().getZ());
+					}
+					plugin.spawnscheduler = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+						
+						@Override
+						public void run() {
+							String world = cfg.getString("Spawn" + "." + "world");
+							double x = cfg.getDouble("Spawn" + "." + ".x");
+							double y = cfg.getDouble("Spawn" + "." + ".y");
+							double z = cfg.getDouble("Spawn" + "." + ".z");
+							double yaw = cfg.getDouble("Spawn" + "." + ".yaw");
+							double pitch = cfg.getDouble("Spawn" + "." + ".pitch");
+							
+							Location lobby = new Location(Bukkit.getWorld(world), x, y, z);
+							lobby.setYaw((float) yaw);
+							lobby.setPitch((float) pitch);
+							p.teleport(lobby);
+						plugin.notMove.remove(p);
+							
+							
+						}
+					},20*3);
+					}else{
+						String world = cfg.getString("Spawn" + "." + "world");
+						double x = cfg.getDouble("Spawn" + "." + ".x");
+						double y = cfg.getDouble("Spawn" + "." + ".y");
+						double z = cfg.getDouble("Spawn" + "." + ".z");
+						double yaw = cfg.getDouble("Spawn" + "." + ".yaw");
+						double pitch = cfg.getDouble("Spawn" + "." + ".pitch");
+						
+						Location lobby = new Location(Bukkit.getWorld(world), x, y, z);
+						lobby.setYaw((float) yaw);
+						lobby.setPitch((float) pitch);
+						p.teleport(lobby);
+					}
+					
+				}else{
+					File file3 = new File("plugins/SkyPvPManager/messages.yml");
+					YamlConfiguration cfg3 = YamlConfiguration.loadConfiguration(file3);
+					p.sendMessage(cfg3.getString("Prefix").replace("&", "§") + cfg3.getString("Error").replace("&", "§"));
+				}
+				
+			}else{
+				File file2 = new File("plugins/SkyPvPManager/messages.yml");
+				YamlConfiguration cfg2 = YamlConfiguration.loadConfiguration(file2);
+				p.sendMessage(cfg2.getString("Prefix").replace("&", "§") + cfg2.getString("Error").replace("&", "§"));
+			}
+		}
+		
+		if(args.length == 1){
+			if(args[0].equalsIgnoreCase("set")){
+				if(p.hasPermission("skypvp.admin")){
+				File file = new File("plugins/SkyPvPManager/Spawn.yml");
+				YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+				String world = p.getWorld().getName();
+				double x = p.getLocation().getX();
+				double y = p.getLocation().getY();
+				double z = p.getLocation().getZ();
+				double yaw = p.getLocation().getYaw();
+				double pitch = p.getLocation().getPitch();
+				cfg.set("Spawn" + "." + ".world", world);
+				cfg.set("Spawn" + "." + ".x", x);
+				cfg.set("Spawn" + "." + ".y", y);
+				cfg.set("Spawn" + "." + ".z", z);
+				cfg.set("Spawn" + "." + ".yaw", yaw);
+				cfg.set("Spawn" + "." + ".pitch", pitch);
+				try {
+					cfg.save(file);
+				} catch (IOException e) {
+					File file2 = new File("plugins/SkyPvPManager/messages.yml");
+					YamlConfiguration cfg2 = YamlConfiguration.loadConfiguration(file2);
+					p.sendMessage(cfg2.getString("Prefix").replace("&", "§") + cfg2.getString("Error").replace("&", "§"));
+				}
+				File file2 = new File("plugins/SkyPvPManager/messages.yml");
+				YamlConfiguration cfg2 = YamlConfiguration.loadConfiguration(file2);
+				p.sendMessage(cfg2.getString("Prefix").replace("&", "§") + "§bSpawn wurde gesetzt!");
+				return true;
+			}else{
+				File file = new File("plugins/SkyPvPManager/Spawn.yml");
+				YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+				if(file.exists()){
+					if(cfg.contains("x") & cfg.contains("y") & cfg.contains("z") & cfg.contains("yaw") & cfg.contains("pitch")){
+						String world = cfg.getString("Spawn" + "." + "world");
+						double x = cfg.getDouble("Spawn" + "." + ".x");
+						double y = cfg.getDouble("Spawn" + "." + ".y");
+						double z = cfg.getDouble("Spawn" + "." + ".z");
+						double yaw = cfg.getDouble("Spawn" + "." + ".yaw");
+						double pitch = cfg.getDouble("Spawn" + "." + ".pitch");
+						
+						Location lobby = new Location(Bukkit.getWorld(world), x, y, z);
+						lobby.setYaw((float) yaw);
+						lobby.setPitch((float) pitch);
+						p.teleport(lobby);
+						
+						
+					}else{
+						File file2 = new File("plugins/SkyPvPManager/messages.yml");
+						YamlConfiguration cfg2 = YamlConfiguration.loadConfiguration(file2);
+						p.sendMessage(cfg2.getString("Prefix").replace("&", "§") + cfg2.getString("Error").replace("&", "§"));
+					}
+					
+				}else{
+					File file2 = new File("plugins/SkyPvPManager/messages.yml");
+					YamlConfiguration cfg2 = YamlConfiguration.loadConfiguration(file2);
+					p.sendMessage(cfg2.getString("Prefix").replace("&", "§") + cfg2.getString("Error").replace("&", "§"));
+				}
+			}
+			}
+		}
+		
+		
+		
+		
+		return true;
+	}
+
+}
