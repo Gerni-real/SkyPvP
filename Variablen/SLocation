@@ -1,0 +1,54 @@
+package Variablen;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+
+public class SLocation implements ConfigurationSerializable{
+	
+	@SuppressWarnings("unused")
+	private static final long serialVersionUID = 7204676959737033332L;
+	 
+    private final String worldname;
+    private final double x;
+    private final double y;
+    private final double z;
+ 
+    public SLocation(Location location) {
+        this.worldname = location.getWorld().getName();
+        this.x = location.getX();
+        this.y = location.getY();
+        this.z = location.getZ();
+    }
+ 
+    public Location unpack() {
+        Location location = new Location(Bukkit.getWorld(this.worldname), this.x, this.y, this.z);
+        return location;
+    }
+
+	public Location getNormal() {
+		Location location = new Location(Bukkit.getWorld(this.worldname), this.x, this.y, this.z);
+        return location;
+	}
+
+	@Override
+	public Map<String, Object> serialize() {
+		HashMap<String, Object> loc = new HashMap<String, Object>();
+		loc.put("world", worldname);
+		loc.put("x", x);
+		loc.put("y", y);
+		loc.put("z", z);
+		return loc;
+	}
+	
+	public SLocation(Map loc){
+		worldname = (String) loc.get("world");
+		x = (double) loc.get("x");
+		y = (double) loc.get("y");
+		z = (double) loc.get("z");
+	}
+
+}
