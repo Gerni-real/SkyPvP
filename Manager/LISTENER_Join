@@ -1,0 +1,79 @@
+package Manager;
+
+import java.io.File;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+
+import de.Ganto.SkyPvPManager.Main;
+
+public class LISTENER_Join implements Listener {
+
+	private Main plugin;
+	
+
+	public LISTENER_Join(Main main) {
+		this.plugin = main;
+		Bukkit.getPluginManager().registerEvents(this, plugin);
+	}
+	
+	@EventHandler
+	public void onJoin(PlayerJoinEvent e){
+		Player p = e.getPlayer();
+		File file = new File("plugins/SkyPvPManager/messages.yml");
+		YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+		int Coins = plugin.getCoins(p);
+		e.setJoinMessage(cfg.getString("JoinGlobalMessage").replace("&", "§").replace("%player%", p.getName()).replace("%coins%", String.valueOf(Coins)).replace(">>", "»"));
+		Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+		
+			@Override
+			public void run() {
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("JoinPrivateMessage").replace("&", "§").replace("%player%", p.getName()).replace("%coins%", String.valueOf(Coins)).replace(">>", "»"));
+				
+			}
+		}, 20*1);
+		
+		File file2 = new File("plugins/SkyPvPManager/Spawn.yml");
+		YamlConfiguration cfg2 = YamlConfiguration.loadConfiguration(file2);
+		if(file.exists()){
+			if(cfg2.contains("Spawn" + "." + "world") & cfg2.contains("Spawn" + "." + ".x") & cfg2.contains("Spawn" + "." + ".y") & cfg2.contains("Spawn" + "." + ".z") & cfg2.contains("Spawn" + "." + ".yaw") & cfg2.contains("Spawn" + "." + ".pitch")){
+				String world = cfg2.getString("Spawn" + "." + "world");
+				double x = cfg2.getDouble("Spawn" + "." + ".x");
+				double y = cfg2.getDouble("Spawn" + "." + ".y");
+				double z = cfg2.getDouble("Spawn" + "." + ".z");
+				double yaw = cfg2.getDouble("Spawn" + "." + ".yaw");
+				double pitch = cfg2.getDouble("Spawn" + "." + ".pitch");
+				
+				Location lobby = new Location(Bukkit.getWorld(world), x, y, z);
+				lobby.setYaw((float) yaw);
+				lobby.setPitch((float) pitch);
+				p.teleport(lobby);
+				
+				
+			}else{
+				File file3 = new File("plugins/SkyPvPManager/messages.yml");
+				YamlConfiguration cfg3 = YamlConfiguration.loadConfiguration(file3);
+				p.sendMessage(cfg3.getString("Prefix").replace("&", "§") + cfg3.getString("Error").replace("&", "§"));
+			}
+			
+		}else{
+			File file3 = new File("plugins/SkyPvPManager/messages.yml");
+			YamlConfiguration cfg3 = YamlConfiguration.loadConfiguration(file3);
+			p.sendMessage(cfg3.getString("Prefix").replace("&", "§") + cfg3.getString("Error").replace("&", "§"));
+		}
+		
+		
+		
+		
+		
+		
+	}
+	
+	
+
+}
