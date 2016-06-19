@@ -1,0 +1,361 @@
+package ShopSystem;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
+
+import de.Ganto.SkyPvPManager.Main;
+
+public class LISTENER_InventoryClickEvent implements Listener{
+
+	private Main plugin;
+
+	public LISTENER_InventoryClickEvent(Main main) {
+		this.plugin = main;
+		Bukkit.getPluginManager().registerEvents(this, plugin);
+	}
+	
+	
+	@EventHandler
+	public void onUse(InventoryClickEvent e){
+		try{
+		Player p = (Player) e.getWhoClicked();
+		//Menü
+		if(e.getInventory().getName().equals("§6Gamenick §8» §cMenü")){
+			e.setCancelled(true);
+			if(e.getCurrentItem().getType() == Material.NETHER_STAR){
+				if(e.getCurrentItem().getItemMeta().getDisplayName().equals("§6Spezial Items")){
+				p.closeInventory();
+				plugin.openSpecial(p);
+				}
+			}
+			
+			
+			if(e.getCurrentItem().getType() == Material.IRON_SWORD){
+				p.closeInventory();
+				plugin.openSwordMenu(p);
+			}
+			
+			if(e.getCurrentItem().getType() == Material.BOW){
+				p.closeInventory();
+				plugin.openBowMenu(p);
+			}
+			
+			if(e.getCurrentItem().getType() == Material.IRON_CHESTPLATE){
+				p.closeInventory();
+				plugin.openArmorMenu(p);
+			}
+			
+			
+			
+		}
+		
+		//Rüstungs-Menü
+		if(e.getInventory().getName().equals("§6Gamenick §8» §cRüstungs Menü")){
+			e.setCancelled(true);
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().equals("§6Rüstung §8» §cEisenrüstung")){
+			p.closeInventory();
+			plugin.openIronArmorMenu(p);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().equals("§6Rüstung §8» §cDiamantrüstung")){
+			p.closeInventory();
+			plugin.openDiaArmorMenu(p);
+			}
+			
+			if(e.getCurrentItem().getType().equals(Material.MAGMA_CREAM)){
+				plugin.openMain(p);
+			}
+			
+		}
+		
+		//Rüstungs-Menü
+		if(e.getInventory().getName().equals("§6Gamenick §8» §cEisenrüstung")){
+			e.setCancelled(true);
+			
+			if(e.getCurrentItem().getType().equals(Material.MAGMA_CREAM)){
+				p.closeInventory();
+				plugin.openArmorMenu(p);
+			}
+			
+		}
+		
+		if(e.getInventory().getName().equals("§6Gamenick §8» §cDiamantrüstung")){
+			e.setCancelled(true);
+			
+			if(e.getCurrentItem().getType().equals(Material.MAGMA_CREAM)){
+				p.closeInventory();
+				plugin.openArmorMenu(p);
+			}
+			
+		}
+		
+		//Schwert-Menü
+		if(e.getInventory().getName().equals("§6Gamenick §8» §cSchwerter Menü")){
+			e.setCancelled(true);
+			
+			if(e.getCurrentItem().getType().equals(Material.MAGMA_CREAM)){
+			 plugin.openMain(p);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().equals("§6Schwerter §8» §cEisenschwerter")){
+			p.closeInventory();
+			plugin.openIronSword(p);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().equals("§6Schwerter §8» §cDiamantschwerter")){
+			p.closeInventory();
+			plugin.openDiaSword(p);
+			}
+			
+		}
+		
+		//Bögen-Menü
+		if(e.getInventory().getName().equals("§6Gamenick §8» §cBögen")){
+			e.setCancelled(true);
+			
+			if(e.getCurrentItem().getType().equals(Material.MAGMA_CREAM)){
+				plugin.openMain(p);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 1") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Bögen")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantBow(Material.BOW, "1", 0, 1, 0, 0, 0);
+				plugin.buy(p, item, 200);
+				if(!p.getInventory().contains(Material.ARROW)){
+				p.getInventory().addItem(new ItemStack(Material.ARROW));
+				}
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 2") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Bögen")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantBow(Material.BOW, "2", 0, 1, 2, 0, 0);
+				plugin.buy(p, item, 400);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 3") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Bögen")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantBow(Material.BOW, "3", 1, 1, 2, 0, 0);
+				plugin.buy(p, item, 600);
+				if(!p.getInventory().contains(Material.ARROW)){
+				p.getInventory().addItem(new ItemStack(Material.ARROW));
+				}
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 4") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Bögen")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantBow(Material.BOW, "4", 1, 1, 2, 0, 0);
+				plugin.buy(p, item, 800);
+				if(!p.getInventory().contains(Material.ARROW)){
+				p.getInventory().addItem(new ItemStack(Material.ARROW));
+				}
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 5") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Bögen")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantBow(Material.BOW, "5", 2, 1, 5, 1, 0);
+				plugin.buy(p, item, 1000);
+				if(!p.getInventory().contains(Material.ARROW)){
+				p.getInventory().addItem(new ItemStack(Material.ARROW));
+				}
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 6") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Bögen")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantBow(Material.BOW, "6", 3, 1, 5, 2, 0);
+				plugin.buy(p, item, 1200);
+				if(!p.getInventory().contains(Material.ARROW)){
+				p.getInventory().addItem(new ItemStack(Material.ARROW));
+				}
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 7") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Bögen")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantBow(Material.BOW, "7", 3, 2, 5, 2, 1);
+				plugin.buy(p, item, 1400);
+				if(!p.getInventory().contains(Material.ARROW)){
+				p.getInventory().addItem(new ItemStack(Material.ARROW));
+				}
+			}
+			
+			
+			
+			
+		}
+		
+		
+		
+		//EisenSchwert-Menü
+		if(e.getInventory().getName().equals("§6Gamenick §8» §cEisenschwerter")){
+			e.setCancelled(true);
+			
+			if(e.getCurrentItem().getType().equals(Material.MAGMA_CREAM)){
+				plugin.openSwordMenu(p);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 1") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Eisenschwert")){
+				
+				ItemStack item = plugin.createItemForPlayer(Material.IRON_SWORD, "§eEisenschwert §8» §cLevel 1", false);
+				plugin.buy(p, item, 200);
+				
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 2") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Eisenschwert")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantSword(Material.IRON_SWORD, "2", 1, 0, 1);
+				plugin.buy(p, item, 400);
+				
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 3") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Eisenschwert")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantSword(Material.IRON_SWORD, "3", 2, 0, 2);
+				plugin.buy(p, item, 600);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 4") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Eisenschwert")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantSword(Material.IRON_SWORD, "4", 2, 1, 2);
+				plugin.buy(p, item, 650);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 5") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Eisenschwert")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantSword(Material.IRON_SWORD, "5", 2, 1, 3);
+				plugin.buy(p, item, 700);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 6") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Eisenschwert")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantSword(Material.IRON_SWORD, "6", 4, 2, 4);
+				plugin.buy(p, item, 1000);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 7") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Eisenschwert")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantSword(Material.IRON_SWORD, "7", 5, 2, 5);
+				plugin.buy(p, item, 1200);
+			}
+			
+		}
+		
+		
+		//DiaSchwert-Menü
+		if(e.getInventory().getName().equals("§6Gamenick §8» §cDiaschwerter")){
+			e.setCancelled(true);
+			
+			if(e.getCurrentItem().getType().equals(Material.MAGMA_CREAM)){
+				plugin.openSwordMenu(p);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 1") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Diaschwert")){
+				
+				ItemStack item = plugin.createItemForPlayer(Material.DIAMOND_SWORD, "§eDiaschwert §8» §cLevel 1", false);
+				plugin.buy(p, item, 400);
+				
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 2") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Diaschwert")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantDiaSword(Material.DIAMOND_SWORD, "2", 1, 0, 1);
+				plugin.buy(p, item, 600);
+				
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 3") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Diaschwert")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantDiaSword(Material.DIAMOND_SWORD, "3", 2, 0, 2);
+				plugin.buy(p, item, 800);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 4") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Diaschwert")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantDiaSword(Material.DIAMOND_SWORD, "4", 2, 1, 2);
+				plugin.buy(p, item, 850);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 5") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Diaschwert")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantDiaSword(Material.DIAMOND_SWORD, "5", 2, 1, 3);
+				plugin.buy(p, item, 900);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 6") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Diaschwert")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantDiaSword(Material.DIAMOND_SWORD, "6", 4, 2, 4);
+				plugin.buy(p, item, 1200);
+			}
+			
+			if(e.getCurrentItem().getItemMeta().getDisplayName().contains("§cLevel 7") & e.getCurrentItem().getItemMeta().getDisplayName().contains("§6Diaschwert")){
+				
+				ItemStack item = plugin.createItemForPlayerEnchantDiaSword(Material.DIAMOND_SWORD, "7", 5, 2, 5);
+				plugin.buy(p, item, 1400);
+			}
+			
+		}
+		
+		
+		
+		
+		//Spezial
+		if(e.getInventory().getName().equals("§6Gamenick §8» §cSpezial Items")){
+			e.setCancelled(true);
+			if(e.getCurrentItem().getType() == Material.REDSTONE){
+				if(e.getCurrentItem().getItemMeta().getDisplayName().equals("§6Spezial Items §8» §cHeal")){
+				ItemStack item = plugin.createItemForPlayer(Material.REDSTONE, "§cHeal", false);
+				plugin.buy(p, item, 600);
+				}
+			}
+			
+			if(e.getCurrentItem().getType() == Material.EYE_OF_ENDER){
+				if(e.getCurrentItem().getItemMeta().getDisplayName().equals("§6Spezial Items §8» §5Schutzschild")){
+				ItemStack item = plugin.createItemForPlayer(Material.EYE_OF_ENDER, "§5Schutzschild", false);
+				plugin.buy(p, item, 800);
+				}
+			}
+			
+			if(e.getCurrentItem().getType() == Material.FIREWORK_CHARGE){
+				if(e.getCurrentItem().getItemMeta().getDisplayName().equals("§6Spezial Items §8» §cGranate")){
+				ItemStack item = plugin.createItemForPlayer(Material.FIREWORK_CHARGE, "§cGranate", false);
+				plugin.buy(p, item, 300);
+			}
+			}
+			
+			if(e.getCurrentItem().getType() == Material.SULPHUR){
+				if(e.getCurrentItem().getItemMeta().getDisplayName().equals("§6Spezial Items §8» §cSpawn Teleporter")){
+				ItemStack item = plugin.createItemForPlayer(Material.SULPHUR, "§cSpawn-TP", false);
+				plugin.buy(p, item, 500);
+			}
+			}
+			
+			if(e.getCurrentItem().getType() == Material.TNT){
+				if(e.getCurrentItem().getItemMeta().getDisplayName().equals("§6Spezial Items §8» §cTNT")){
+				ItemStack item = plugin.createItemForPlayer(Material.TNT, "§cTNT", false);
+				plugin.buy(p, item, 200);
+			}
+			}
+			
+			if(e.getCurrentItem().getType() == Material.MAGMA_CREAM ){
+				if(e.getCurrentItem().getItemMeta().getDisplayName().equals("§cZurück zum Hauptmenü")){
+					p.closeInventory();
+					plugin.openMain(p);
+				}
+				
+			}
+			
+			
+		}
+		
+	}catch (Exception e2){
+		
+	}
+	
+	}
+	
+
+}
