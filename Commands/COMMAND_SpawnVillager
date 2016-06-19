@@ -1,1 +1,46 @@
 
+package Commands;
+
+import org.bukkit.Location;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Villager;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+
+import de.Ganto.SkyPvPManager.Main;
+
+public class COMMAND_SpawnVillager implements CommandExecutor {
+
+	@SuppressWarnings("deprecation")
+	@Override
+	public boolean onCommand(CommandSender sender, Command cmd, String label,String[] args) {
+		
+		Player p = (Player) sender;
+		Villager villager = (Villager) p.getWorld().spawnCreature(p.getLocation(), EntityType.VILLAGER);
+		villager.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 10000, 128));
+		
+		ArmorStand armor = (ArmorStand) p.getWorld().spawnCreature(p.getLocation(), EntityType.ARMOR_STAND);
+		armor.setCustomName("§6Shop");
+		armor.setCustomNameVisible(true);
+		armor.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 100000, 2));
+		armor.setVisible(false);
+		
+		return true;
+	}
+	
+	 public void spawnVillagaer(Location loc,String name){
+		      
+		      
+		  }
+	
+	
+	
+	
+	
+
+}
