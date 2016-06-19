@@ -1,0 +1,217 @@
+package FreeSign;
+
+import java.io.File;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.block.Sign;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import de.Ganto.SkyPvPManager.Main;
+
+public class FreeSigns implements Listener{
+	
+	File file = new File("plugins/SkyPvPManager/FreeSign.yml");
+	FileConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+	private Main plugin;
+	
+	
+	
+	
+	
+	
+	public FreeSigns(Main main) {
+		this.plugin = main;
+		Bukkit.getPluginManager().registerEvents(this, plugin);
+	}
+
+
+	@EventHandler
+	public void onSign(SignChangeEvent e){
+		String Prefix = cfg.getString("Chat-Prefix").replace("&", "§") + " ";
+		String noperm = cfg.getString("Keine Rechte").replace("&", "§");
+		String ID = cfg.getString("ID").replace("&", "§");
+		String Anzahl = cfg.getString("Anzahl").replace("&", "§");
+		Player p = e.getPlayer();
+			if(e.getLine(0).equalsIgnoreCase("[Free]")){
+				if(!(e.getLine(1).isEmpty())){
+					
+					
+					if(!(e.getLine(2).isEmpty())){
+						if(p.hasPermission("FreeSign.create")){
+						
+				e.setLine(0, cfg.getString("Sign-Prefix").replace("&", "§"));
+				
+				if(!(e.getLine(3).isEmpty())){
+				String Zeile2 = e.getLine(1);
+				String Zeile3 = e.getLine(2);
+				String Zeile4 = e.getLine(3).replace("&", "§");
+				e.setLine(1, Zeile4);
+				e.setLine(2, Zeile2);
+				e.setLine(3, Zeile3);
+				}
+				
+				
+				
+				
+				p.sendMessage(Prefix + cfg.getString("Schild erstellt").replace("&", "§"));
+				
+				
+				return;
+						}else{
+							p.sendMessage(Prefix + noperm);
+						}
+					}else{
+						p.sendMessage(Prefix + Anzahl);
+						e.getBlock().setType(Material.AIR);
+						return;
+					}
+				}else{
+					p.sendMessage(Prefix + ID);
+					e.getBlock().setType(Material.AIR);
+					return;
+				}
+			}
+			
+			
+		
+	}
+	
+	
+	@SuppressWarnings({ "deprecation" })
+	@EventHandler
+	public void onInteract(PlayerInteractEvent e){
+		Player p = e.getPlayer();
+		int ID = 0;
+		int subID = 0;
+		int Anzahl = 0;
+		String Prefix = cfg.getString("Chat-Prefix").replace("&", "§") + " ";
+		String noperm = cfg.getString("Keine Rechte").replace("&", "§");
+		String cc = cfg.getString("Can't Create").replace("&", "§");
+		try{
+				if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
+					if(e.getClickedBlock().getState() instanceof Sign){
+						Sign s = (Sign) e.getClickedBlock().getState();
+						
+						if(s.getLine(0).equals(cfg.getString("Sign-Prefix").replace("&", "§"))){
+							if(!(p.hasPermission("FreeSign.use"))){
+								p.sendMessage(Prefix + noperm);
+								return;
+							}
+						
+						if(s.getLine(3).isEmpty()){
+							
+							if(s.getLine(1).contains(":")){
+								String[] array = s.getLine(1).split(":");
+								ID = Integer.valueOf(array[0]);
+								subID = Integer.valueOf(array[1]);
+								Anzahl = Integer.valueOf(s.getLine(2));
+							}else{
+								ID = Integer.valueOf(s.getLine(1));
+								Anzahl = Integer.valueOf(s.getLine(2));
+							}
+						
+							Inventory inv = Bukkit.createInventory(null, 27, cfg.getString("Inventory-Prefix").replace("&", "§"));
+							
+							ItemStack item = new ItemStack(ID, Anzahl, (short) subID);
+							ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1 ,(short) 15);
+							ItemMeta meta = pane.getItemMeta();
+							meta.setDisplayName(" ");
+							pane.setItemMeta(meta);
+							
+							
+							for(int i = 0; i < 9; i++){
+								inv.setItem(i, pane);
+							}
+							
+							for(int i = 18; i < 27; i++){
+								inv.setItem(i, pane);
+							}
+							
+							inv.setItem(13, item);
+							
+							p.openInventory(inv);
+							
+							
+							
+							
+							
+							
+							
+							
+						}else{
+					    
+						if(s.getLine(2).contains(":")){
+							String[] array = s.getLine(2).split(":");
+							ID = Integer.valueOf(array[0]);
+							subID = Integer.valueOf(array[1]);
+							Anzahl = Integer.valueOf(s.getLine(3));
+						}else{
+							ID = Integer.valueOf(s.getLine(2));
+							Anzahl = Integer.valueOf(s.getLine(3));
+						}
+						
+						Inventory inv = Bukkit.createInventory(null, 27, cfg.getString("Inventory-Prefix").replace("&", "§"));
+						
+						ItemStack item = new ItemStack(ID, Anzahl, (short) subID);
+						ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1, (short) 15);
+						ItemMeta meta = pane.getItemMeta();
+						meta.setDisplayName(" ");
+						pane.setItemMeta(meta);
+						
+						
+						for(int i = 0; i < 9; i++){
+							inv.setItem(i, pane);
+						}
+						
+						for(int i = 18; i < 27; i++){
+							inv.setItem(i, pane);
+						}
+						
+						inv.setItem(13, item);
+						
+						p.openInventory(inv);
+						
+						
+						}
+						}
+					}
+				}
+		}catch(Exception e2){
+			p.sendMessage(Prefix + cc);
+		}
+	}
+	
+	
+	@EventHandler
+	public void onClick(InventoryClickEvent e){
+		try{
+			if(e.getCurrentItem().getType() == Material.STAINED_GLASS_PANE){
+				if(e.getCurrentItem().getItemMeta().getDisplayName() == " "){
+				e.setCancelled(true);
+				
+				}
+			}
+			
+		}catch(Exception e2){
+			
+		}
+		
+	}
+	
+	
+	
+	
+
+}
