@@ -1,0 +1,1278 @@
+package de.Ganto.SkyPvPManager;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import net.minecraft.server.v1_8_R3.NBTTagCompound;
+import net.minecraft.server.v1_8_R3.NBTTagList;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import Commands.COMMAND_Coins;
+import Commands.COMMAND_Setup;
+import Commands.COMMAND_Spawn;
+import Commands.COMMAND_SpawnVillager;
+import Commands.COMMAND_Stats;
+import FreeSign.FreeSigns;
+import Manager.LISTENER_Damage;
+import Manager.LISTENER_Hunger;
+import Manager.LISTENER_Join;
+import Manager.LISTENER_PlayerDeath;
+import Manager.LISTENER_PlayerMoveEvent;
+import Manager.LISTENER_Quit;
+import Manager.LISTENER_Scoreboard;
+import Manager.LISTENER_Setup;
+import ShopSystem.LISTENER_EntityInteract;
+import ShopSystem.LISTENER_InventoryClickEvent;
+import ShopSystem.LISTENER_NoDamage;
+import ShopSystem.LISTENER_UseSpecialItems;
+import Variablen.Area;
+
+public class Main extends JavaPlugin{
+	
+	public static final String ANSI_RESET = "\u001B[0m";
+	public static final String ANSI_BLACK = "\u001B[30m";
+	public static final String ANSI_RED = "\u001B[31m";
+	public static final String ANSI_GREEN = "\u001B[32m";
+	public static final String ANSI_YELLOW = "\u001B[33m";
+	public static final String ANSI_BLUE = "\u001B[34m";
+	public static final String ANSI_PURPLE = "\u001B[35m";
+	public static final String ANSI_CYAN = "\u001B[36m";
+	public static final String ANSI_WHITE = "\u001B[37m";
+	
+	public static Main instance;
+	
+	public ArrayList<Player> noDamage = new ArrayList<>();
+	public ArrayList<Player> notMove = new ArrayList<>();
+	public int spawnscheduler;
+	public ArrayList<Player> inSetup = new ArrayList<>();
+	public ArrayList<Player> inSetupSpawn = new ArrayList<>();
+	public ArrayList<Player> inSetupGame = new ArrayList<>();
+	
+	@Override
+	public void onEnable(){
+		
+		instance = this;
+		
+		System.out.println(ANSI_GREEN + "================= " + ANSI_RED + "SkyPvP-Manager " + ANSI_GREEN + "=================" + ANSI_RESET);
+		System.out.println(" ");
+		System.out.println(ANSI_YELLOW + "           Plugin Created by: " + ANSI_RESET + ANSI_CYAN + "Ganto" + ANSI_RESET);
+		System.out.println(ANSI_YELLOW + "           Plugin Ideen von "+ ANSI_RESET + ANSI_CYAN + "MineSideLP" + ANSI_RESET);
+		System.out.println(ANSI_YELLOW + "           Plugin version: " + ANSI_RESET + ANSI_CYAN + this.getDescription().getVersion() + ANSI_RESET);
+		System.out.println(" ");
+		System.out.println(ANSI_GREEN + "=============================================" + ANSI_RESET);
+		
+		File config = new File("plugins/SkyPvPManager/config.yml");
+		
+		System.out.println(ANSI_RED + "Loading configuration files..." + ANSI_RESET);
+		if(config.exists()){
+		loadConfig();
+		System.out.println(ANSI_GREEN + "Done!" + ANSI_RESET);
+		}else{
+			System.out.println(ANSI_BLUE + "No Config exists! Creating..." + ANSI_RESET);
+			loadConfig();
+			System.out.println(ANSI_GREEN + "Done!" + ANSI_RESET);
+		}
+		System.out.println(ANSI_RED + "Loading Listener..." + ANSI_RESET);
+		Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+		registerEvents();
+		if(getConfig().getBoolean("AutoCleanerEnabled")){
+		startAutoCleaner();
+		}
+		System.out.println(ANSI_GREEN + "Done!" + ANSI_RESET);
+		System.out.println(ANSI_RED + "Loading Commands..." + ANSI_RESET);
+		loadingCommands();
+		System.out.println(ANSI_GREEN + "Done!" + ANSI_RESET);
+		System.out.println(ANSI_YELLOW + "Dieses Plugin wurde fuer das Server Netzwerk Gamenick-Network.eu programmiert!"+ ANSI_RESET);
+	}
+	
+	
+	private void startAutoCleaner() {
+		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+			File file = new File("plugins/SkyPvPManager/messages.yml");
+			YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+			int high = getConfig().getInt("AutoCleaninSeconds")+1;
+			int half = getConfig().getInt("AutoCleaninSeconds")/2;
+			@Override
+			public void run() {
+			
+				
+			if(getConfig().getBoolean("AutoCleanerFulLTimeMessage")){
+			if(high == getConfig().getInt("AutoCleaninSeconds")+1){
+				Bukkit.broadcastMessage(cfg.getString("Prefix").replace("&", "§") +  cfg.getString("TimeMessage").replace("%time%", String.valueOf(getConfig().getInt("AutoCleaninSeconds"))).replace("&", "§").replace("oe", "ö"));
+			}
+			}
+			
+			 high--;
+			 if(getConfig().getBoolean("AutoCleanerHalfTimeMessage")){
+			 if(high == half){
+					Bukkit.broadcastMessage(cfg.getString("Prefix").replace("&", "§") +  cfg.getString("TimeMessage").replace("%time%", String.valueOf(half)).replace("&", "§".replace("oe", "ö")));
+			 }
+		 }
+			 
+			 
+			 if(getConfig().getBoolean("AutoCleaner10SecondsMessage"))
+			 if(high == 10){
+					Bukkit.broadcastMessage(cfg.getString("Prefix").replace("&", "§") +  cfg.getString("TimeMessage").replace("%time%", String.valueOf(10)).replace("&", "§").replace("oe", "ö"));
+			}
+			 
+		if(getConfig().getBoolean("AutoCleanerItemsDeletedMessage")){
+			if(high == 0){
+				for(Entity entity : Bukkit.getWorld(getConfig().getString("WeltName")).getEntities()){
+					if(entity instanceof Item){
+						entity.remove();
+					}
+				}
+				
+				getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "killall drops");
+				high = getConfig().getInt("AutoCleaninSeconds")+1;
+				Bukkit.broadcastMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("ItemsDeleted").replace("oe", "ö").replace("&", "§"));
+			 }
+		 }
+		}
+		}, 0, 20);
+		
+	}
+
+	private void loadingCommands() {
+		COMMAND_Coins cCOMMAND_Coins = new COMMAND_Coins(this);
+		getCommand("coins").setExecutor(cCOMMAND_Coins);
+		
+		COMMAND_Stats cCOMMAND_Stats = new COMMAND_Stats(this);
+		getCommand("stats").setExecutor(cCOMMAND_Stats);
+		
+		COMMAND_Spawn cCOMMAND_Setspawn = new COMMAND_Spawn(this);
+		getCommand("spawn").setExecutor(cCOMMAND_Setspawn);
+		
+		COMMAND_SpawnVillager cCOMMAND_SpawnVillager = new COMMAND_SpawnVillager();
+		getCommand("spawnvillager").setExecutor(cCOMMAND_SpawnVillager);
+		
+		COMMAND_Setup cCOMMAND_Setup = new COMMAND_Setup(this);
+		getCommand("setup").setExecutor(cCOMMAND_Setup);
+	}
+	
+	public void registerEvents(){
+		//FreeSigns
+		new FreeSigns(this);
+		
+		//Manager
+		new LISTENER_Join(this);
+		new LISTENER_Quit(this);
+		new LISTENER_PlayerDeath(this);
+		new LISTENER_Scoreboard(this);
+		new LISTENER_Hunger(this);
+		new LISTENER_InventoryClickEvent(this);
+		new LISTENER_UseSpecialItems(this);
+		new LISTENER_NoDamage(this);
+		new LISTENER_EntityInteract(this);
+		new LISTENER_PlayerMoveEvent(this);
+		new LISTENER_Setup(this);
+		new LISTENER_Damage(this);
+	}
+	
+	
+	public void loadConfig(){
+		//Config
+		getConfig().addDefault("StartCoins", 10000);
+		getConfig().addDefault("KillCoinsPlus", 500);
+		getConfig().addDefault("DeathCoinsMinus", 250);
+		getConfig().addDefault("Hunger", false);
+		getConfig().addDefault("WeltName", "world");
+		getConfig().addDefault("AutoCleanerEnabled", true);
+		getConfig().addDefault("AutoCleaninSeconds", 120);
+		getConfig().addDefault("AutoCleanerFulLTimeMessage", true);
+		getConfig().addDefault("AutoCleanerHalfTimeMessage", true);
+		getConfig().addDefault("AutoCleaner10SecondsMessage", true);
+		getConfig().addDefault("AutoCleanerItemsDeletedMessage", true);
+		getConfig().options().copyDefaults(true);
+		saveConfig();
+		
+		
+		
+		
+		
+		//messages
+		File file = new File("plugins/SkyPvPManager/messages.yml");
+		YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+		//Prefix
+		cfg.addDefault("Prefix", "&7[&6GameNick&7] ");
+		//Join/Quit Nachrichten
+		cfg.addDefault("JoinPrivateMessage", "&2Dein Coins Guthaben lautet: &6%coins%");
+		cfg.addDefault("JoinGlobalMessage", "&7[&2+&7] &6%player%");
+		cfg.addDefault("QuitGlobalMessage", "&7[&4-&7] &6%player%");
+		
+		//DeathNachrichten
+		cfg.addDefault("DeathGlobalMessage", "&6%killer% &2hat &4%player% &2das leben genommen");
+		cfg.addDefault("DeathGlobalMessageNotFromPlayer", "&4%player% &2ist gestorben!");
+		cfg.addDefault("KillPrivateMessage", "&2Du hast &5%coins% &2Coins bekommen! Da du &6%player% &2das Leben genommen hast!");
+		cfg.addDefault("DeathPrivateMessage", "&2Du hast &5%coins% &2Coins verloren! Da du von &6%player% &2getoetet worden bist!");
+		
+		//Command Nachrichten
+		cfg.addDefault("CoinMessage", "&2Dein Coins Guthaben lautet: \n&6%coins%");
+		cfg.addDefault("Error", "&cEs ist ein Fehler aufgetreten!");
+		cfg.addDefault("PlayerNotFound", "§cDieser Spieler war noch nie auf diesem Server");
+		cfg.addDefault("SamePlayer", "&cDu kannst dir nicht selber Geld geben!");
+		cfg.addDefault("PlayerReceivedMoney", "&2Du hast von &6%player% &5%coins% &2Coins erhalten!");
+		cfg.addDefault("PlayerLosedMoney", "&2Du hast &6%target% &5%coins% &2Coins gegeben!");
+		cfg.addDefault("NotEnoughMoney", "&cDu hast nicht genug Coins!");
+		cfg.addDefault("OtherMoney", "&2Der Coinstand von &6%player% &2lautet: &5%coins% &2Coins");
+		cfg.addDefault("PleaseUseMoney", "&cBitte benutze: &6/coins");
+		cfg.addDefault("NoCommand", "&cDu kannst momentan keine Commands benutzen! \nDa du in einem Kampf bist!");
+		
+		//Help Nachrichten
+		cfg.addDefault("NoPermissions", "&cDu hast nicht genug Rechte um diesen Befehl zu benutzen.");
+		cfg.addDefault("CoinPayHelpMessage", "&c/coins pay <Spieler> <Anzahl>");
+		cfg.addDefault("CoinHelpMessage", "&c/coins (Spieler)");
+		
+		//Shop Nachrichten
+		cfg.addDefault("NoSpaceInInventory", "&cDu kannst das hier nicht kaufen! Da dein Inventar voll ist.");
+		cfg.addDefault("SuccefullyBuyed", "&aDu hast das Item erfolgreich gekauft!.");
+		
+		//AutoClear
+		cfg.addDefault("TimeMessage", "&cAlle items werden in &9%time% Sekunden &cgeloescht!");
+		cfg.addDefault("ItemsDeleted", "&cAlle items wurden geloescht!");
+		
+		//NotUse
+		cfg.addDefault("NoSpawnUse", "§cDu kannst keine Spezial Items im Spawn benutzen!");
+		
+		
+		cfg.options().copyDefaults(true);
+		try {
+			cfg.save(file);
+		} catch (IOException e) {
+		}
+		
+		//FreeSigns
+		File file2 = new File("plugins/SkyPvPManager/FreeSign.yml");
+		FileConfiguration cfg2 = YamlConfiguration.loadConfiguration(file2);
+		cfg2.addDefault("Enabled", true);
+		cfg2.addDefault("Chat-Prefix", "&7[&cFreeSigns&7]");
+		cfg2.addDefault("Inventory-Prefix", "&2Gratis");
+		cfg2.addDefault("Can't Create", "&cEs ist ein fehler aufgetreten!");
+		cfg2.addDefault("Keine Rechte", "&cDu hast keine Rechte dazu");
+		cfg2.addDefault("Sign-Prefix", "&7[&2Gratis&7]");
+		cfg2.addDefault("ID", "&cBitte gib eine ID an!");
+		cfg2.addDefault("Anzahl", "&cBitte gib eine Anzahl an!");
+		cfg2.addDefault("Schild erstellt", "&2Das Schild wurde erfolgreich erstellt!");
+		cfg2.options().copyDefaults(true);
+		try {
+			cfg2.save(file2);
+		} catch (IOException e) {
+		}
+		
+		//Scoreboard
+		File file3 = new File("plugins/SkyPvPManager/Scoreboard.yml");
+		FileConfiguration cfg3 = YamlConfiguration.loadConfiguration(file3);
+		cfg3.addDefault("ScoreboardHeader", "&7-= &eStats &7=-");
+		cfg3.addDefault("RefreshTime", 60);
+		cfg3.options().copyDefaults(true);
+		try {
+			cfg3.save(file3);
+		} catch (IOException e) {
+		}
+		
+		//Special-Items
+		File file4 = new File("plugins/SkyPvPManager/SpecialItems.yml");
+		FileConfiguration cfg4 = YamlConfiguration.loadConfiguration(file4);
+		cfg4.addDefault("SchutzSchild Dauer", 5);
+		cfg4.options().copyDefaults(true);
+		try {
+			cfg4.save(file4);
+		} catch (IOException e) {
+		}
+		
+		
+		
+	}
+	
+	
+	
+	
+	
+	//Coins
+	
+	public int getCoins(Player p){
+		File coinsf = new File("plugins/SkyPvPManager/coins.yml");
+		YamlConfiguration coins = YamlConfiguration.loadConfiguration(coinsf);
+		int currentCoins = 0;
+		if(coins.contains(p.getName())){
+		currentCoins = coins.getInt(p.getName() + "." + ".coins");
+		return currentCoins;
+		}else{
+			
+			coins.set(p.getName() + "." + ".coins", getConfig().getInt("StartCoins"));
+			currentCoins = coins.getInt(p.getName() + "." + ".coins");
+			
+			try {
+				coins.save(coinsf);
+			} catch (IOException e) {
+			}
+			return currentCoins;
+		}
+	}
+	
+	public int getOfflineCoins(String name){
+		File coinsf = new File("plugins/SkyPvPManager/coins.yml");
+		YamlConfiguration coins = YamlConfiguration.loadConfiguration(coinsf);
+		int currentCoins = 0;
+		if(coins.contains(name)){
+		currentCoins = coins.getInt(name + "." + ".coins");
+		return currentCoins;
+		}else{
+			
+			coins.set(name + "." + ".coins", getConfig().getInt("StartCoins"));
+			currentCoins = coins.getInt(name + "." + ".coins");
+			
+			try {
+				coins.save(coinsf);
+			} catch (IOException e) {
+			}
+			return currentCoins;
+		}
+	}
+	
+	public void addCoins(Player p, int amount){
+		File coinsf = new File("plugins/SkyPvPManager/coins.yml");
+		YamlConfiguration coins = YamlConfiguration.loadConfiguration(coinsf);
+		int currentCoins = getCoins(p);
+		int add = amount;
+		int ergebnis = currentCoins+add;
+		
+		
+		coins.set(p.getName() + "." + ".coins", ergebnis);
+		try {
+			coins.save(coinsf);
+		} catch (IOException e) {
+		}
+	}
+	
+	
+	public void delCoins(Player p, int amount){
+		File coinsf = new File("plugins/SkyPvPManager/coins.yml");
+		YamlConfiguration coins = YamlConfiguration.loadConfiguration(coinsf);
+		int currentCoins = getCoins(p);
+		int del = amount;
+		int ergebnis = currentCoins-del;
+		LISTENER_Scoreboard.updateScoreboard(p);
+		if(ergebnis+1 <=0){
+			ergebnis = 0;
+		}
+		
+		
+		coins.set(p.getName() + "." + ".coins", ergebnis);
+		try {
+			coins.save(coinsf);
+		} catch (IOException e) {
+		}
+	}
+	
+	
+	
+	public void setCoins(Player p, int amount){
+		File coinsf = new File("plugins/SkyPvPManager/coins.yml");
+		YamlConfiguration coins = YamlConfiguration.loadConfiguration(coinsf);
+		int set = amount;
+		LISTENER_Scoreboard.updateScoreboard(p);
+		
+		coins.set(p.getName() + "." + ".coins", set);
+		try {
+			coins.save(coinsf);
+		} catch (IOException e) {
+		}
+	}
+	
+	
+	public void payCoins(Player p, Player target, int amount){
+		File coinsf = new File("plugins/SkyPvPManager/coins.yml");
+		YamlConfiguration coins = YamlConfiguration.loadConfiguration(coinsf);
+		int currentCoinsSender = getCoins(p);
+		int currentCoinsTarget = getCoins(target);
+		
+		int nowSender = currentCoinsSender-amount;
+		int nowTarget = currentCoinsTarget+amount;
+		File file = new File("plugins/SkyPvPManager/messages.yml");
+		YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+		
+		
+		if(!(nowSender+1 <= 0)){
+		
+		p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("PlayerLosedMoney").replace("&", "§").replace("%target%", target.getName()).replace("%coins%", String.valueOf(amount)));
+		target.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("PlayerReceivedMoney").replace("&", "§").replace("%player%", p.getName()).replace("%coins%", String.valueOf(amount)));
+		LISTENER_Scoreboard.updateScoreboard(p);
+		LISTENER_Scoreboard.updateScoreboard(target);
+		coins.set(p.getName() + "." + ".coins", nowSender);
+		coins.set(target.getName() + "." + ".coins", nowTarget);
+		try {
+			coins.save(coinsf);
+		} catch (IOException e) {
+		}
+		}else{	
+			p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("NotEnoughMoney").replace("&", "§"));
+			return;
+		}
+		
+		
+		
+	}
+	
+	public boolean exist(String name){
+		File coinsf = new File("plugins/SkyPvPManager/coins.yml");
+		YamlConfiguration coins = YamlConfiguration.loadConfiguration(coinsf);
+		if(coins.contains(name)){
+			return true;
+		}
+		return false;
+	}
+	
+	
+	public void addDeath(Player p){
+		File statsf = new File("plugins/SkyPvPManager/stats.yml");
+		YamlConfiguration stats = YamlConfiguration.loadConfiguration(statsf);
+		if(stats.contains(p.getName())){
+			int death = stats.getInt(p.getName() + "." + ".death");
+			int now = death+1;
+			stats.set(p.getName() + "." + ".death", now);
+			LISTENER_Scoreboard.updateScoreboard(p);
+			try {
+				stats.save(statsf);
+			} catch (IOException e) {
+			}
+			
+			
+			
+		}else{
+			stats.set(p.getName() + "." + ".death", 1);
+			stats.set(p.getName() + "." + ".kill", 0);	
+			try {
+				stats.save(statsf);
+			} catch (IOException e) {
+			}
+		}
+		
+	}
+	
+	public void addKill(Player p){
+		File statsf = new File("plugins/SkyPvPManager/stats.yml");
+		YamlConfiguration stats = YamlConfiguration.loadConfiguration(statsf);
+		if(stats.contains(p.getName())){
+			int kill = stats.getInt(p.getName() + "." + ".kill");
+			int now = kill+1;
+			stats.set(p.getName() + "." + ".kill", now);
+			LISTENER_Scoreboard.updateScoreboard(p);
+			try {
+				stats.save(statsf);
+			} catch (IOException e) {
+			}
+			
+			
+			
+		}else{
+			stats.set(p.getName() + "." + ".death", 0);
+			stats.set(p.getName() + "." + ".kill", 1);	
+			try {
+				stats.save(statsf);
+			} catch (IOException e) {
+			}
+		}
+	}
+	
+	public int getKill(Player p){
+		File statsf = new File("plugins/SkyPvPManager/stats.yml");
+		YamlConfiguration stats = YamlConfiguration.loadConfiguration(statsf);
+		int kill;
+		if(stats.contains(p.getName())){
+			kill = stats.getInt(p.getName() + "." + ".kill");
+		}else{
+			stats.set(p.getName() + "." + ".death", 0);
+			stats.set(p.getName() + "." + ".kill", 0);
+			kill = stats.getInt(p.getName() + "." + ".kill");
+			try {
+				stats.save(statsf);
+			} catch (IOException e) {
+			}
+		}
+		return kill;
+	}
+	
+	public int getDeaths(Player p){
+		File statsf = new File("plugins/SkyPvPManager/stats.yml");
+		YamlConfiguration stats = YamlConfiguration.loadConfiguration(statsf);
+		int deaths;
+		if(stats.contains(p.getName())){
+			deaths = stats.getInt(p.getName() + "." + ".death");
+		}else{
+			stats.set(p.getName() + "." + ".death", 0);
+			stats.set(p.getName() + "." + ".kill", 0);
+			deaths = stats.getInt(p.getName() + "." + ".death");
+			try {
+				stats.save(statsf);
+			} catch (IOException e) {
+			}
+		}
+		return deaths;
+	}
+	
+	
+	public void generateBasic(String name){
+		File statsf = new File("plugins/SkyPvPManager/stats.yml");
+		YamlConfiguration stats = YamlConfiguration.loadConfiguration(statsf); 
+		stats.set(name + "." + ".death", 0);
+		stats.set(name + "." + ".kill", 0);
+		try {
+			stats.save(statsf);
+		} catch (IOException e) {
+		}
+	}
+	
+	public void sendStats(Player p, String target){
+		try{
+		File statsf = new File("plugins/SkyPvPManager/stats.yml");
+		YamlConfiguration stats = YamlConfiguration.loadConfiguration(statsf);
+		File coinsf = new File("plugins/SkyPvPManager/coins.yml");
+		YamlConfiguration coins = YamlConfiguration.loadConfiguration(coinsf);
+		if(coins.contains(target)){
+		if(!stats.contains(target)){
+			generateBasic(target);
+		}
+		int deaths = stats.getInt(target + "." + ".death");
+		int kills = stats.getInt(target + "." + ".kill");
+		double kd = (double) kills/(double) deaths;
+		
+		int currentCoins = 0;
+		if(coins.contains(target)){
+		currentCoins = coins.getInt(target + "." + ".coins");
+		}
+		
+		
+		
+		
+		
+		
+		p.sendMessage("§7-= §eStats von §6" + target + " §7=-");
+		p.sendMessage(" §7Coins: §e" + currentCoins);
+		p.sendMessage(" §7Kills§8: §e" + String.valueOf(kills));
+		p.sendMessage(" §7Deaths§8: §e" + String.valueOf(deaths));
+		if(deaths == 0 | kills == 0){
+		p.sendMessage(" §7K/D§8: §e-");
+		}else{
+		p.sendMessage(" §7K/D§8: §e" + runden(kd));
+		}
+		p.sendMessage("§7--------------------");
+			
+		}else{
+			File file = new File("plugins/SkyPvPManager/messages.yml");
+			YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+			p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("PlayerNotFound").replace("&", "§"));
+		}
+		}catch(Exception e){
+			File file = new File("plugins/SkyPvPManager/messages.yml");
+			YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+			p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("PlayerNotFound").replace("&", "§"));
+		}
+	}
+	
+	public double runden(double betrag){
+		   double round = Math.round(betrag*10000); 
+		      round = round / 10000; 
+		      round = Math.round(round*1000); 
+		      round = round / 1000; 
+		      round = Math.round(round*100); 
+		      return round / 100; 
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//SHOP-SYSTEM
+	public void openMain(Player p){
+		p.closeInventory();
+		Inventory inv = Bukkit.createInventory(null, 45, "§6Gamenick §8» §cMenü");
+		ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1 ,(short) 7);
+		ItemMeta meta = pane.getItemMeta();
+		meta.setDisplayName(" ");
+		pane.setItemMeta(meta);
+		
+		ItemStack Schwert = createItemForShop(Material.IRON_SWORD, "§6Schwerter", "§cHier kannst du dir Schwerter kaufen!", true);
+		ItemStack Chestplate = createItemForShop(Material.IRON_CHESTPLATE, "§6Rüstung", "§cHier kannst du dir Rüstung kaufen!", true);
+		ItemStack Bow = createItemForShop(Material.BOW, "§6Bögen", "§cHier kannst du dir Bögen kaufen!", true);
+		ItemStack SpezialItems = createItemForShop(Material.NETHER_STAR, "§6Spezial Items", "§cKaufe dir Spezial Items die dir helfen können", false);
+		ItemStack Tränke = createItemForShop(Material.EMERALD, "§6Effekte §c(Kommt bald)", "§cHier kannst du dir Tränke kaufen!", true);
+		
+		
+		
+		for(int i = 0; i < 45; i++){
+			inv.setItem(i, pane);
+		}
+		inv.setItem(2, Schwert);
+		inv.setItem(6, Chestplate);
+		inv.setItem(38, Bow);
+		inv.setItem(42, SpezialItems);
+		inv.setItem(22, Tränke);
+	p.openInventory(inv);	
+	}
+	
+	
+	//Schwerter Auswahl
+	public void openSwordMenu(Player p){
+		p.closeInventory();
+		Inventory inv = Bukkit.createInventory(null, 36, "§6Gamenick §8» §cSchwerter Menü");
+		ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1 ,(short) 7);
+		ItemMeta meta = pane.getItemMeta();
+		meta.setDisplayName(" ");
+		pane.setItemMeta(meta);
+		
+		ItemStack ESchwert = createItemForShop(Material.IRON_SWORD, "§6Schwerter §8» §cEisenschwerter", "§cHier kommst du zu den Eisenschwertern!", true);
+		ItemStack DSchwert = createItemForShop(Material.DIAMOND_SWORD, "§6Schwerter §8» §cDiamantschwerter", "§cHier kommst du zu den Diaschwertern!!", true);
+		
+		//Zurück
+		ItemStack back = new ItemStack(Material.MAGMA_CREAM);
+		ItemMeta backm = back.getItemMeta();
+		backm.setDisplayName("§cZurück zum Hauptmenü");
+		back.setItemMeta(backm);
+		
+		
+		for(int i = 0; i < 36; i++){
+			inv.setItem(i, pane);
+		}
+		inv.setItem(11, ESchwert);
+		inv.setItem(15, DSchwert);
+		inv.setItem(31, back);
+		
+	    p.openInventory(inv);
+	}
+	
+	//Eisen-Schwerter Auswahl
+	public void openIronSword(Player p){
+		p.closeInventory();
+		Inventory inv = Bukkit.createInventory(null, 45, "§6Gamenick §8» §cEisenschwerter");
+		ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1 ,(short) 7);
+		ItemMeta meta = pane.getItemMeta();
+		meta.setDisplayName(" ");
+		pane.setItemMeta(meta);
+		
+		ItemStack ESchwert1 = createItemForCategorieShopEnchantmentSword(Material.IRON_SWORD, "§6Eisenschwert", "§cLevel 1", "200", false, 0, 0, 0);
+		ItemStack ESchwert2 = createItemForCategorieShopEnchantmentSword(Material.IRON_SWORD, "§6Eisenschwert", "§cLevel 2", "400", false, 1, 0, 1);
+		ItemStack ESchwert3 = createItemForCategorieShopEnchantmentSword(Material.IRON_SWORD, "§6Eisenschwert", "§cLevel 3", "600", false, 2, 0, 2);
+		ItemStack ESchwert4 = createItemForCategorieShopEnchantmentSword(Material.IRON_SWORD, "§6Eisenschwert", "§cLevel 4", "650", false, 2, 1, 2);
+		ItemStack ESchwert5 = createItemForCategorieShopEnchantmentSword(Material.IRON_SWORD, "§6Eisenschwert", "§cLevel 5", "700", false, 2, 1, 3);
+		ItemStack ESchwert6 = createItemForCategorieShopEnchantmentSword(Material.IRON_SWORD, "§6Eisenschwert", "§cLevel 6", "1000", false, 4, 2, 5);
+		ItemStack ESchwert7 = createItemForCategorieShopEnchantmentSword(Material.IRON_SWORD, "§6Eisenschwert", "§cLevel 7", "1200", false, 5, 2, 5);
+		
+		//Zurück
+		ItemStack back = new ItemStack(Material.MAGMA_CREAM);
+		ItemMeta backm = back.getItemMeta();
+		backm.setDisplayName("§cZurück");
+		back.setItemMeta(backm);
+		
+		
+		for(int i = 0; i < 45; i++){
+			inv.setItem(i, pane);
+		}
+		inv.setItem(19, ESchwert1);
+		inv.setItem(20, ESchwert2);
+		inv.setItem(21, ESchwert3);
+		inv.setItem(22, ESchwert4);
+		inv.setItem(23, ESchwert5);
+		inv.setItem(24, ESchwert6);
+		inv.setItem(25, ESchwert7);
+		inv.setItem(40, back);
+		
+	p.openInventory(inv);	
+	}
+	
+	//Eisen-Rüstung Auswahl
+	public void openIronArmorMenu(Player p){
+		p.closeInventory();
+		Inventory inv = Bukkit.createInventory(null, 54, "§6Gamenick §8» §cEisenrüstung");
+		ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1 ,(short) 7);
+		ItemMeta meta = pane.getItemMeta();
+		meta.setDisplayName(" ");
+		pane.setItemMeta(meta);
+		
+		ItemStack eisenhelm = new ItemStack(Material.IRON_HELMET);
+		ItemMeta eisenhelmm = eisenhelm.getItemMeta();
+		eisenhelmm.setDisplayName("§6Eisenhelm");
+		eisenhelm.setItemMeta(eisenhelmm);
+		
+		ItemStack eisenbrust = new ItemStack(Material.IRON_CHESTPLATE);
+		ItemMeta eisenbrustm = eisenbrust.getItemMeta();
+		eisenbrustm.setDisplayName("§6Eisenbrustplatte");
+		eisenbrust.setItemMeta(eisenbrustm);
+		
+		ItemStack eisenleg = new ItemStack(Material.IRON_LEGGINGS);
+		ItemMeta eisenlegm = eisenleg.getItemMeta();
+		eisenlegm.setDisplayName("§6Eisenbeinschutz");
+		eisenleg.setItemMeta(eisenlegm);
+		
+		ItemStack eisenschuhe = new ItemStack(Material.IRON_BOOTS);
+		ItemMeta eisenschuhem = eisenschuhe.getItemMeta();
+		eisenschuhem.setDisplayName("§6Eisenschuhe");
+		eisenschuhe.setItemMeta(eisenschuhem);
+		
+		//Zurück
+		ItemStack back = new ItemStack(Material.MAGMA_CREAM);
+		ItemMeta backm = back.getItemMeta();
+		backm.setDisplayName("§cZurück");
+		back.setItemMeta(backm);
+		
+		
+		for(int i = 0; i < 53; i++){
+			inv.setItem(i, pane);
+		}
+		
+		inv.setItem(13, eisenhelm);
+		inv.setItem(22, eisenbrust);
+		inv.setItem(31, eisenleg);
+		inv.setItem(40, eisenschuhe);
+		inv.setItem(53, back);
+		
+		p.openInventory(inv);
+		
+		
+	}
+	
+	//Dia-Rüstung Auswahl
+	public void openDiaArmorMenu(Player p){
+		p.closeInventory();
+		Inventory inv = Bukkit.createInventory(null, 54, "§6Gamenick §8» §cDiamantrüstung");
+		ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1 ,(short) 7);
+		ItemMeta meta = pane.getItemMeta();
+		meta.setDisplayName(" ");
+		pane.setItemMeta(meta);
+		
+		ItemStack eisenhelm = new ItemStack(Material.DIAMOND_HELMET);
+		ItemMeta eisenhelmm = eisenhelm.getItemMeta();
+		eisenhelmm.setDisplayName("§6Diamantenhelm");
+		eisenhelm.setItemMeta(eisenhelmm);
+		
+		ItemStack eisenbrust = new ItemStack(Material.DIAMOND_CHESTPLATE);
+		ItemMeta eisenbrustm = eisenbrust.getItemMeta();
+		eisenbrustm.setDisplayName("§6Diamantenbrustplatte");
+		eisenbrust.setItemMeta(eisenbrustm);
+		
+		ItemStack eisenleg = new ItemStack(Material.DIAMOND_LEGGINGS);
+		ItemMeta eisenlegm = eisenleg.getItemMeta();
+		eisenlegm.setDisplayName("§6Diamantenbeinschutz");
+		eisenleg.setItemMeta(eisenlegm);
+		
+		ItemStack eisenschuhe = new ItemStack(Material.DIAMOND_BOOTS);
+		ItemMeta eisenschuhem = eisenschuhe.getItemMeta();
+		eisenschuhem.setDisplayName("§6Diamantenschuhe");
+		eisenschuhe.setItemMeta(eisenschuhem);
+		
+		//Zurück
+		ItemStack back = new ItemStack(Material.MAGMA_CREAM);
+		ItemMeta backm = back.getItemMeta();
+		backm.setDisplayName("§cZurück");
+		back.setItemMeta(backm);
+		
+		
+		for(int i = 0; i < 53; i++){
+			inv.setItem(i, pane);
+		}
+		
+		inv.setItem(13, eisenhelm);
+		inv.setItem(22, eisenbrust);
+		inv.setItem(31, eisenleg);
+		inv.setItem(40, eisenschuhe);
+		inv.setItem(45, back);
+		
+		p.openInventory(inv);
+		
+		
+	}
+	
+	//Dia-Schwerter Auswahl
+	public void openDiaSword(Player p){
+		p.closeInventory();
+		Inventory inv = Bukkit.createInventory(null, 45, "§6Gamenick §8» §cDiaschwerter");
+		ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1 ,(short) 7);
+		ItemMeta meta = pane.getItemMeta();
+		meta.setDisplayName(" ");
+		pane.setItemMeta(meta);
+		
+		ItemStack ESchwert1 = createItemForCategorieShopEnchantmentSword(Material.DIAMOND_SWORD, "§6Diaschwert", "§cLevel 1", "400", false, 0, 0, 0);
+		ItemStack ESchwert2 = createItemForCategorieShopEnchantmentSword(Material.DIAMOND_SWORD, "§6Diaschwert", "§cLevel 2", "600", false, 1, 0, 1);
+		ItemStack ESchwert3 = createItemForCategorieShopEnchantmentSword(Material.DIAMOND_SWORD, "§6Diaschwert", "§cLevel 3", "800", false, 2, 0, 2);
+		ItemStack ESchwert4 = createItemForCategorieShopEnchantmentSword(Material.DIAMOND_SWORD, "§6Diaschwert", "§cLevel 4", "850", false, 2, 1, 2);
+		ItemStack ESchwert5 = createItemForCategorieShopEnchantmentSword(Material.DIAMOND_SWORD, "§6Diaschwert", "§cLevel 5", "900", false, 2, 1, 3);
+		ItemStack ESchwert6 = createItemForCategorieShopEnchantmentSword(Material.DIAMOND_SWORD, "§6Diaschwert", "§cLevel 6", "1200", false, 4, 2, 5);
+		ItemStack ESchwert7 = createItemForCategorieShopEnchantmentSword(Material.DIAMOND_SWORD, "§6Diaschwert", "§cLevel 7", "1400", false, 5, 2, 5);
+		
+		//Zurück
+		ItemStack back = new ItemStack(Material.MAGMA_CREAM);
+		ItemMeta backm = back.getItemMeta();
+		backm.setDisplayName("§cZurück");
+		back.setItemMeta(backm);
+		
+		
+		for(int i = 0; i < 45; i++){
+			inv.setItem(i, pane);
+		}
+		inv.setItem(19, ESchwert1);
+		inv.setItem(20, ESchwert2);
+		inv.setItem(21, ESchwert3);
+		inv.setItem(22, ESchwert4);
+		inv.setItem(23, ESchwert5);
+		inv.setItem(24, ESchwert6);
+		inv.setItem(25, ESchwert7);
+		inv.setItem(40, back);
+		
+	p.openInventory(inv);
+	}
+	
+	
+	public void openSpecial(Player p){
+		p.closeInventory();
+		
+		//pane
+		Inventory inv = Bukkit.createInventory(null, 54, "§6Gamenick §8» §cSpezial Items");
+		ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1 ,(short) 7);
+		ItemMeta meta = pane.getItemMeta();
+		meta.setDisplayName(" ");
+		pane.setItemMeta(meta);
+		
+		
+		//tnt
+		ItemStack tnt = new ItemStack(Material.TNT);
+		ItemMeta tntm = tnt.getItemMeta();
+		tntm.setDisplayName("§6Spezial Items §8» §cTNT");
+		ArrayList<String> tntl = new ArrayList<>();
+		tntl.add("§ePreis §8» §9200 Coins");
+		tntm.setLore(tntl);
+		tnt.setItemMeta(tntm);
+		
+		//Granate
+		ItemStack gra = new ItemStack(Material.FIREWORK_CHARGE);
+		ItemMeta gram = gra.getItemMeta();
+		gram.setDisplayName("§6Spezial Items §8» §cGranate");
+		ArrayList<String> gral = new ArrayList<>();
+		gral.add("§ePreis §8» §9300 Coins");
+		gram.setLore(gral);
+		gra.setItemMeta(gram);
+		
+		//Spawn-TP
+		ItemStack spawn = new ItemStack(Material.SULPHUR);
+		ItemMeta spawnm = spawn.getItemMeta();
+		spawnm.setDisplayName("§6Spezial Items §8» §cSpawn Teleporter");
+		ArrayList<String> spawnl = new ArrayList<>();
+		spawnl.add("§ePreis §8» §9500 Coins");
+		spawnm.setLore(spawnl);
+		spawn.setItemMeta(spawnm);
+		
+		//Heal
+		ItemStack heal = new ItemStack(Material.REDSTONE);
+		ItemMeta healm = heal.getItemMeta();
+		healm.setDisplayName("§6Spezial Items §8» §cHeal");
+		ArrayList<String> heall = new ArrayList<>();
+		heall.add("§ePreis §8» §9600 Coins");
+		healm.setLore(heall);
+		heal.setItemMeta(healm);
+		
+		//Schutzschild
+		ItemStack ss = new ItemStack(Material.EYE_OF_ENDER);
+		ItemMeta ssm = ss.getItemMeta();
+		ssm.setDisplayName("§6Spezial Items §8» §5Schutzschild");
+		ArrayList<String> ssl = new ArrayList<>();
+		ssl.add("§ePreis §8» §9800 Coins");
+		ssm.setLore(ssl);
+		ss.setItemMeta(ssm);
+		
+		//Zurück
+		ItemStack back = new ItemStack(Material.MAGMA_CREAM);
+		ItemMeta backm = back.getItemMeta();
+		backm.setDisplayName("§cZurück zum Hauptmenü");
+		back.setItemMeta(backm);
+		
+		
+		
+		for(int i = 0; i < 54; i++){
+			inv.setItem(i, pane);
+		}
+		
+		
+		
+		inv.setItem(11, tnt);
+		inv.setItem(13, gra);
+		inv.setItem(15, spawn);
+		inv.setItem(29, heal);
+		inv.setItem(31, ss);
+		inv.setItem(49, back);
+		
+		
+		
+		p.openInventory(inv);
+		
+		
+		
+	}
+	
+	public void openArmorMenu(Player p){
+		p.closeInventory();
+		
+		//pane
+		Inventory inv = Bukkit.createInventory(null, 36, "§6Gamenick §8» §cRüstungs Menü");
+		ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1 ,(short) 7);
+		ItemMeta meta = pane.getItemMeta();
+		meta.setDisplayName(" ");
+		pane.setItemMeta(meta);
+		
+		//Zurück
+		ItemStack back = new ItemStack(Material.MAGMA_CREAM);
+		ItemMeta backm = back.getItemMeta();
+		backm.setDisplayName("§cZurück zum Hauptmenü");
+		back.setItemMeta(backm);
+		
+		//Eisen
+		ItemStack Eisen = createItemForShop(Material.IRON_CHESTPLATE, "§6Rüstung §8» §cEisenrüstung", "§cHier kommst du zu den Eisenrüstungen!", true);
+		
+		//Dia
+		ItemStack Dia = createItemForShop(Material.DIAMOND_CHESTPLATE, "§6Rüstung §8» §cDiamantrüstung", "§cHier kommst du zu den Diamantrüstungen!!", true);
+		
+		for(int i = 0; i < 35; i++){
+			inv.setItem(i, pane);
+		}
+		
+		inv.setItem(31, back);
+		inv.setItem(11, Eisen);
+		inv.setItem(15, Dia);
+		
+		p.openInventory(inv);
+	}
+	
+	public void openBowMenu(Player p){
+		p.closeInventory();
+		
+		//pane
+		Inventory inv = Bukkit.createInventory(null, 54, "§6Gamenick §8» §cBögen");
+		ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1 ,(short) 7);
+		ItemMeta meta = pane.getItemMeta();
+		meta.setDisplayName(" ");
+		pane.setItemMeta(meta);
+		
+		//Bögen
+		ItemStack Bow1 = createItemForCategorieShopEnchantmentBow(Material.BOW, "§6Bögen", "§cLevel 1", "200", false, 0, 1, 0, 0, 0);
+		ItemStack Bow2 = createItemForCategorieShopEnchantmentBow(Material.BOW, "§6Bögen", "§cLevel 2", "400", false, 0, 1, 2, 0, 0);
+		ItemStack Bow3 = createItemForCategorieShopEnchantmentBow(Material.BOW, "§6Bögen", "§cLevel 3", "600", false, 1, 1, 2, 0, 0);
+		ItemStack Bow4 = createItemForCategorieShopEnchantmentBow(Material.BOW, "§6Bögen", "§cLevel 4", "800", false, 1, 1, 2, 0, 0);
+		ItemStack Bow5 = createItemForCategorieShopEnchantmentBow(Material.BOW, "§6Bögen", "§cLevel 5", "1000", false, 2, 1, 5, 1, 0);
+		ItemStack Bow6 = createItemForCategorieShopEnchantmentBow(Material.BOW, "§6Bögen", "§cLevel 6", "1200", false, 3, 1, 5, 2, 0);
+		ItemStack Bow7 = createItemForCategorieShopEnchantmentBow(Material.BOW, "§6Bögen", "§cLevel 7", "1400", false, 3, 2, 5, 2, 1);
+		
+		
+		//Zurück
+		ItemStack back = new ItemStack(Material.MAGMA_CREAM);
+		ItemMeta backm = back.getItemMeta();
+		backm.setDisplayName("§cZurück zum Hauptmenü");
+		back.setItemMeta(backm);
+		
+		
+		
+		for(int i = 0; i < 53; i++){
+			inv.setItem(i, pane);
+		}
+		
+		inv.setItem(19, Bow1);
+		inv.setItem(20, Bow2);
+		inv.setItem(21, Bow3);
+		inv.setItem(22, Bow4);
+		inv.setItem(23, Bow5);
+		inv.setItem(24, Bow6);
+		inv.setItem(25, Bow7);
+		inv.setItem(49, back);
+		
+		p.openInventory(inv);
+		
+	}
+	
+	
+	public static ItemStack addGlow(ItemStack item){
+		
+		net.minecraft.server.v1_8_R3.ItemStack nmsStack = CraftItemStack.asNMSCopy(item);
+        NBTTagCompound tag = null;
+        if (!nmsStack.hasTag()) {
+            tag = new NBTTagCompound();
+            nmsStack.setTag(tag);
+        }
+        if (tag == null) tag = nmsStack.getTag();
+        NBTTagList ench = new NBTTagList();
+        tag.set("ench", ench);
+        nmsStack.setTag(tag);
+        return CraftItemStack.asCraftMirror(nmsStack);
+    }
+	
+	
+	public ItemStack createItemForShop(Material item, String kategorie, String Lore, Boolean enchant){
+		ItemStack gg = new ItemStack(item);
+		ItemMeta ggm = gg.getItemMeta();
+		ggm.setDisplayName(kategorie);
+		ArrayList<String> ggl = new ArrayList<>();
+		ggl.add(Lore);
+		ggm.setLore(ggl);
+		gg.setItemMeta(ggm);
+		if(enchant){
+			ItemStack ggg = addGlow(gg);
+			return ggg;
+		}else{
+			return gg;
+		}
+	}
+	
+	public ItemStack createItemForCategorieShop(Material item, String kategorie, String Name,String Preis, Boolean enchant){
+		ItemStack gg = new ItemStack(item);
+		ItemMeta ggm = gg.getItemMeta();
+		ggm.setDisplayName("§6" + kategorie + " §8»" + " §6" + Name);
+		ArrayList<String> ggl = new ArrayList<>();
+		ggl.add("§ePreis §8» §9" + Preis + " Coins");
+		ggm.setLore(ggl);
+		gg.setItemMeta(ggm);
+		if(enchant){
+			ItemStack ggg = addGlow(gg);
+			return ggg;
+		}else{
+			return gg;
+		}
+	}
+	
+	public ItemStack createItemForCategorieShopEnchantmentSword(Material item, String kategorie, String Name, String Preis, Boolean enchant, int Schärfe, int Rückstoß, int Haltbarkeit){
+		ItemStack gg = new ItemStack(item);
+		ItemMeta ggm = gg.getItemMeta();
+		ggm.setDisplayName("§6" + kategorie + " §8»" + " §6" + Name);
+		ArrayList<String> ggl = new ArrayList<>();
+		ggl.add("§ePreis §8» §9" + Preis + " Coins");
+		ggm.setLore(ggl);
+		gg.setItemMeta(ggm);
+		if(!(Rückstoß == 0)){
+		gg.addUnsafeEnchantment(Enchantment.KNOCKBACK, Rückstoß);
+		}
+		if(!(Schärfe == 0)){
+		gg.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, Schärfe);
+		}
+		if(!(Haltbarkeit == 0)){
+		gg.addUnsafeEnchantment(Enchantment.DURABILITY, Haltbarkeit);
+		}
+		
+		if(enchant){
+			ItemStack ggg = addGlow(gg);
+			return ggg;
+		}else{
+			return gg;
+		}
+	}
+	
+	public ItemStack createItemForCategorieShopEnchantmentBow(Material item, String kategorie, String Name, String Preis, Boolean enchant, int Knockback, int Unendlichkeit, int Haltbarkeit, int Power, int Flame){
+		ItemStack gg = new ItemStack(item);
+		ItemMeta ggm = gg.getItemMeta();
+		ggm.setDisplayName("§6" + kategorie + " §8»" + " §6" + Name);
+		ArrayList<String> ggl = new ArrayList<>();
+		ggl.add("§ePreis §8» §9" + Preis + " Coins");
+		ggm.setLore(ggl);
+		gg.setItemMeta(ggm);
+		if(!(Unendlichkeit == 0)){
+		gg.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, Unendlichkeit);
+		}
+		if(!(Knockback == 0)){
+		gg.addUnsafeEnchantment(Enchantment.ARROW_KNOCKBACK, Knockback);
+		}
+		if(!(Haltbarkeit == 0)){
+		gg.addUnsafeEnchantment(Enchantment.DURABILITY, Haltbarkeit);
+		}
+		if(!(Power == 0)){
+		gg.addUnsafeEnchantment(Enchantment.ARROW_DAMAGE, Power);
+		}
+		if(!(Flame == 0)){
+		gg.addUnsafeEnchantment(Enchantment.ARROW_FIRE, Flame);
+		}
+		
+		
+		
+		if(enchant){
+			ItemStack ggg = addGlow(gg);
+			return ggg;
+		}else{
+			return gg;
+		}
+	}
+	
+	public ItemStack createItemForPlayerEnchantBow(Material item, String Level, int Knockback, int Unendlichkeit, int Haltbarkeit, int Power, int Flame){
+		ItemStack gg = new ItemStack(item);
+		ItemMeta ggm = gg.getItemMeta();
+		ggm.setDisplayName("§eBögen §8» §cLevel " + Level);
+		gg.setItemMeta(ggm);
+		if(!(Unendlichkeit == 0)){
+		gg.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, Unendlichkeit);
+		}
+		if(!(Knockback == 0)){
+		gg.addUnsafeEnchantment(Enchantment.ARROW_KNOCKBACK, Knockback);
+		}
+		if(!(Haltbarkeit == 0)){
+		gg.addUnsafeEnchantment(Enchantment.DURABILITY, Haltbarkeit);
+		}
+		if(!(Power == 0)){
+		gg.addUnsafeEnchantment(Enchantment.ARROW_DAMAGE, Power);
+		}
+		if(!(Flame == 0)){
+		gg.addUnsafeEnchantment(Enchantment.ARROW_FIRE, Flame);
+		}
+		return gg;
+		
+		
+		
+	}
+	
+	
+	public ItemStack createItemForPlayer(Material item, String Itemname, Boolean enchant){
+		ItemStack gg = new ItemStack(item);
+		ItemMeta ggm = gg.getItemMeta();
+		ggm.setDisplayName(Itemname);
+		gg.setItemMeta(ggm);
+		if(enchant){
+			ItemStack ggg = addGlow(gg);
+			return ggg;
+		}else{
+			return gg;
+		}
+		
+		
+	}
+	
+	
+	
+	public ItemStack createItemForPlayerEnchantSword(Material item, String Level,int Schärfe, int Rückstoß, int Haltbarkeit){
+		ItemStack gg = new ItemStack(item);
+		ItemMeta ggm = gg.getItemMeta();
+		ggm.setDisplayName("§eEisenschwert §8» §cLevel " + Level);
+		gg.setItemMeta(ggm);
+		if(!(Rückstoß == 0)){
+		gg.addUnsafeEnchantment(Enchantment.KNOCKBACK, Rückstoß);
+		}
+		if(!(Schärfe == 0)){
+		gg.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, Schärfe);
+		}
+		if(!(Haltbarkeit == 0)){
+		gg.addUnsafeEnchantment(Enchantment.DURABILITY, Haltbarkeit);
+		}
+		return gg;
+		
+		
+		
+	}
+	
+	public ItemStack createItemForPlayerEnchantDiaSword(Material item, String Level,int Schärfe, int Rückstoß, int Haltbarkeit){
+		ItemStack gg = new ItemStack(item);
+		ItemMeta ggm = gg.getItemMeta();
+		ggm.setDisplayName("§eDiaschwert §8» §cLevel " + Level);
+		gg.setItemMeta(ggm);
+		if(!(Rückstoß == 0)){
+		gg.addUnsafeEnchantment(Enchantment.KNOCKBACK, Rückstoß);
+		}
+		if(!(Schärfe == 0)){
+		gg.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, Schärfe);
+		}
+		if(!(Haltbarkeit == 0)){
+		gg.addUnsafeEnchantment(Enchantment.DURABILITY, Haltbarkeit);
+		}
+		return gg;
+		
+		
+		
+	}
+	
+	
+	public void buy(Player p, ItemStack item, int Preis){
+		File file = new File("plugins/SkyPvPManager/messages.yml");
+		YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+		int currentCoins = getCoins(p);
+		int newCoins = currentCoins-Preis;
+		if(FullInventory(p.getInventory())){
+			p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("NoSpaceInInventory").replace("&", "§"));
+			p.playSound(p.getLocation(), Sound.GLASS, 10, 0);
+			return;
+		}
+		if(newCoins < 0){
+			p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("NotEnoughMoney").replace("&", "§"));
+			p.playSound(p.getLocation(), Sound.GLASS, 10, 0);
+			return;
+		}
+		delCoins(p, Preis);
+		p.getInventory().addItem(item);
+		p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("SuccefullyBuyed").replace("&", "§"));
+		p.playSound(p.getLocation(), Sound.LEVEL_UP, 10, 0);
+		LISTENER_Scoreboard.updateScoreboard(p);
+		if(item.getType().equals(Material.BOW)){
+			if(!p.getInventory().contains(Material.ARROW)){
+			p.getInventory().addItem(new ItemStack(Material.ARROW));
+			}
+		}
+		
+		
+	}
+	
+	
+	public boolean FullInventory(Inventory inv){
+		for(ItemStack i : inv.getContents()){
+			if (i == null || i.getType() == Material.AIR) return false;
+		}
+		return true;
+	}
+	
+	public boolean inAreaCheckSpawn(Player p){
+		File spawn = new File("plugins/SkyPvPManager/Spawn.yml");
+		FileConfiguration scfg = YamlConfiguration.loadConfiguration(spawn);
+		
+		Location loc1 = new Location(Bukkit.getWorld(scfg.getString("World")), scfg.getInt("X1"), scfg.getInt("Y1"), scfg.getInt("Z1"));
+		Location loc2 = new Location(Bukkit.getWorld(scfg.getString("World")), scfg.getInt("X2"), scfg.getInt("Y2"), scfg.getInt("Z2"));
+		Area.Area(loc1, loc2);
+		Area.checkForPlayersInArea();
+		return Area.isPlayerInArea(p.getName());
+	}
+	
+	public boolean inAreaCheckGame(Player p){
+		File spawn = new File("plugins/SkyPvPManager/Spawn.yml");
+		FileConfiguration scfg = YamlConfiguration.loadConfiguration(spawn);
+		
+		Location loc1 = new Location(Bukkit.getWorld(scfg.getString("World")), scfg.getInt("X3"), scfg.getInt("Y3"), scfg.getInt("Z3"));
+		Location loc2 = new Location(Bukkit.getWorld(scfg.getString("World")), scfg.getInt("X4"), scfg.getInt("Y4"), scfg.getInt("Z4"));
+		Area.Area(loc1, loc2);
+		Area.checkForPlayersInArea();
+		return Area.isPlayerInArea(p.getName());
+	}
+	
+	
+	
+	
+	
+
+}
