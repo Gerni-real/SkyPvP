@@ -1,0 +1,212 @@
+package Commands;
+
+import java.io.File;
+
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+
+import de.Ganto.SkyPvPManager.Main;
+
+public class COMMAND_Coins implements CommandExecutor {
+
+	private Main plugin;
+
+	public COMMAND_Coins(Main main) {
+		this.plugin = main;
+	}
+
+	@Override
+	public boolean onCommand(CommandSender sender, Command cmd, String label,String[] args) {
+		Player p = (Player) sender;
+		if(args.length == 0){
+			if(sender instanceof Player){
+				File file = new File("plugins/SkyPvPManager/messages.yml");
+				YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+				int Coins = plugin.getCoins(p);
+				p.sendMessage(cfg.getString("CoinMessage").replace("&", "§").replace("%player%", p.getName()).replace("%coins%", String.valueOf(Coins)));
+			}else{
+				sender.sendMessage("Dieser Befehl ist nur für Spieler.");
+			}
+		}
+		if(args.length == 1 | args.length == 2){
+			File file = new File("plugins/SkyPvPManager/messages.yml");
+			YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+			File coinsf = new File("plugins/SkyPvPManager/coins.yml");
+			YamlConfiguration coins = YamlConfiguration.loadConfiguration(coinsf);
+			if(coins.contains(args[0])){
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("OtherMoney").replace("&", "§").replace("%player%", args[0]).replace("%coins%", String.valueOf(plugin.getOfflineCoins(args[0]))));
+				return true;
+			}
+			
+			
+			//Pay
+			if(args[0].equalsIgnoreCase("pay")){
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("CoinPayHelpMessage").replace("&", "§"));
+				return true;
+			}
+			
+			
+			//Add
+			if(args[0].equalsIgnoreCase("add")){
+				if(!(p.hasPermission("skypvp.admin"))){
+					p.sendMessage(cfg.getString("NoPermissions").replace("&", "§"));
+					return true;
+				}
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + "§c/coins add <Spieler> <Anzahl>");
+				return true;
+				
+			}
+			
+			
+			//Remove
+			if(args[0].equalsIgnoreCase("remove")){
+				if(!(p.hasPermission("skypvp.admin"))){
+					p.sendMessage(cfg.getString("NoPermissions").replace("&", "§"));
+					return true;
+				}
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + "§c/coins remove <Spieler> <Anzahl>");
+				return true;
+				
+			}
+			
+			
+			//Set
+			if(args[0].equalsIgnoreCase("set")){
+				if(!(p.hasPermission("skypvp.admin"))){
+					p.sendMessage(cfg.getString("NoPermissions").replace("&", "§"));
+					return true;
+				}
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + "§c/coins set <Spieler> <Anzahl>");
+				return true;
+				
+			}
+			
+			if(!p.hasPermission("skypvp.admin")){
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("CoinHelpMessage").replace("&", "§"));
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("CoinPayHelpMessage").replace("&", "§"));
+			}else{
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("CoinHelpMessage").replace("&", "§"));
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("CoinPayHelpMessage").replace("&", "§"));
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + "§c/coins add <Spieler> <Anzahl>");
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + "§c/coins remove <Spieler> <Anzahl>");
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + "§c/coins set <Spieler> <Anzahl>");
+			}
+			
+			
+		}
+		
+		if(args.length == 3){
+			
+			File file = new File("plugins/SkyPvPManager/messages.yml");
+			YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+			//Pay
+			if(args[0].equalsIgnoreCase("pay")){
+				if(Bukkit.getPlayer(args[1]) == p){
+					p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("SamePlayer").replace("&", "§"));
+					return true;
+				}
+				if(!plugin.exist(args[1])){
+					p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("Error").replace("&", "§"));
+					return true;	
+				}
+				try{
+				Player target = Bukkit.getPlayer(args[1]);
+				int amount = Integer.valueOf(args[2]);
+				plugin.payCoins(p, target, amount);
+				}catch(Exception e3){
+					p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("Error").replace("&", "§"));
+				}
+				return true;
+			}
+			
+			
+			//Add
+			if(args[0].equalsIgnoreCase("add")){
+				if(!(p.hasPermission("skypvp.admin"))){
+					p.sendMessage(cfg.getString("NoPermissions").replace("&", "§"));
+					return true;
+				}
+				if(!plugin.exist(args[1])){
+					p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("Error").replace("&", "§"));
+					return true;	
+				}
+				try{
+				Player target = Bukkit.getPlayer(args[1]);
+				int amount = Integer.valueOf(args[2]);
+				plugin.addCoins(target, amount);
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + "§2Du hast §6" + target.getName() + " §5" + amount + " §2Coins gegeben!");
+				}catch(Exception e3){
+					p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("Error").replace("&", "§"));
+				}
+				
+				return true;
+				
+			}
+			
+			
+			//Remove
+			if(args[0].equalsIgnoreCase("remove")){
+				if(!(p.hasPermission("skypvp.admin"))){
+					p.sendMessage(cfg.getString("NoPermissions").replace("&", "§"));
+					return true;
+				}
+				if(!plugin.exist(args[1])){
+					p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("Error").replace("&", "§"));
+					return true;	
+				}
+				try{
+				Player target = Bukkit.getPlayer(args[1]);
+				int amount = Integer.valueOf(args[2]);
+				plugin.delCoins(target, amount);
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + "§2Du hast §6" + target.getName() + " §5" + amount + " §2Coins abgezogen!");
+				}catch(Exception e3){
+					p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("Error").replace("&", "§"));
+				}
+				
+				
+				return true;
+				
+			}
+			
+			
+			//Set
+			if(args[0].equalsIgnoreCase("set")){
+				if(!(p.hasPermission("skypvp.admin"))){
+					p.sendMessage(cfg.getString("NoPermissions").replace("&", "§"));
+					return true;
+				}
+				if(!plugin.exist(args[1])){
+					p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("Error").replace("&", "§"));
+					return true;	
+				}
+				try{
+				Player target = Bukkit.getPlayer(args[1]);
+				int amount = Integer.valueOf(args[2]);
+				plugin.setCoins(target, amount);
+				p.sendMessage(cfg.getString("Prefix").replace("&", "§") + "§2Du hast §6" + target.getName() + "'s §2Konto auf §5" + amount + " §2Coins gesetzt!");
+				}catch(Exception e3){
+					p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("Error").replace("&", "§"));
+				}
+				
+				return true;
+				
+			}
+			
+			
+		}
+		
+		
+		
+		
+		
+		return true;
+	}
+	
+	
+	
+
+}
