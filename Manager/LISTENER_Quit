@@ -1,0 +1,38 @@
+package Manager;
+
+import java.io.File;
+
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
+
+import de.Ganto.SkyPvPManager.Main;
+
+public class LISTENER_Quit implements Listener {
+
+	
+	
+	private Main plugin;
+	
+
+	public LISTENER_Quit(Main main) {
+		this.plugin = main;
+		Bukkit.getPluginManager().registerEvents(this, plugin);
+	}
+	
+	
+	@EventHandler
+	public void onQuit(PlayerQuitEvent e){
+		Player p = e.getPlayer();
+		File file = new File("plugins/SkyPvPManager/messages.yml");
+		YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+		int Coins = plugin.getCoins(p);
+		e.setQuitMessage(cfg.getString("QuitGlobalMessage").replace("&", "§").replace("%player%", p.getName()).replace("%coins%", String.valueOf(Coins)).replace("<<", "«"));
+	
+	}
+	
+	
+}
