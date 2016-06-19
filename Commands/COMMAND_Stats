@@ -1,0 +1,31 @@
+package Commands;
+
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import de.Ganto.SkyPvPManager.Main;
+
+public class COMMAND_Stats implements CommandExecutor {
+
+	private Main plugin;
+
+	public COMMAND_Stats(Main main) {
+		this.plugin = main;
+	}
+
+	@Override
+	public boolean onCommand(CommandSender sender, Command cmd, String label,String[] args) {
+		Player p = (Player) sender;
+		if(args.length == 0){
+			plugin.sendStats(p,p.getName());
+		}
+		if(args.length == 1){
+			plugin.sendStats(p,args[0]);
+		}
+		return true;
+	}
+
+}
