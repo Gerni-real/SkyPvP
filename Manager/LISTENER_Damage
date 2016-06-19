@@ -1,0 +1,41 @@
+package Manager;
+
+
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+
+
+
+import de.Ganto.SkyPvPManager.Main;
+
+public class LISTENER_Damage implements Listener{
+	
+	
+	private Main plugin;
+
+	public LISTENER_Damage(Main main) {
+		this.plugin = main;
+		Bukkit.getPluginManager().registerEvents(this, plugin);
+	}
+	
+	@EventHandler
+	public void onDamage(EntityDamageEvent e){
+		if(e.getEntity() instanceof Player){
+			Player p = (Player) e.getEntity();
+			if(plugin.inAreaCheckSpawn(p)){
+				e.setCancelled(true);
+			 }
+		}
+
+		
+	}
+	
+	
+	
+	
+
+}
