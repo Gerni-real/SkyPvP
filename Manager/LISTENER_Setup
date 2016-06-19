@@ -1,0 +1,438 @@
+package Manager;
+
+import java.io.File;
+import java.io.IOException;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.IronGolem;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import de.Ganto.SkyPvPManager.Main;
+
+public class LISTENER_Setup implements Listener {
+
+	private Main plugin;
+
+	public LISTENER_Setup(Main main) {
+		this.plugin = main;
+		Bukkit.getPluginManager().registerEvents(this, plugin);
+	}
+	
+
+	File file = new File("plugins/SkyPvPManager/messages.yml");
+	YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+	
+	File spawn = new File("plugins/SkyPvPManager/Spawn.yml");
+	FileConfiguration scfg = YamlConfiguration.loadConfiguration(spawn);
+	
+	String Prefix = cfg.getString("Prefix").replace("&", "§");
+	
+	String world;
+	
+	int X1Spawn;
+	int Y1Spawn;
+	int Z1Spawn;
+	
+	int X2Spawn;
+	int Y2Spawn;
+	int Z2Spawn;
+	
+	
+	int X1Arena;
+	int Y1Arena;
+	int Z1Arena;
+	
+	int X2Arena;
+	int Y2Arena;
+	int Z2Arena;
+	
+	@EventHandler
+	public void onIronAxe(PlayerInteractEvent e){
+		Player p = e.getPlayer();
+		try{
+		if(plugin.inSetup.contains(p)){
+			e.setCancelled(true);
+		}
+		
+		
+		
+		if(p.getInventory().getItemInHand().getType().equals(Material.IRON_AXE)){
+		if(plugin.inSetupSpawn.contains(p)){
+		if(e.getAction() == Action.LEFT_CLICK_BLOCK){
+			X1Spawn = e.getClickedBlock().getLocation().getBlockX();
+			Y1Spawn = e.getClickedBlock().getLocation().getBlockY();
+			Z1Spawn = e.getClickedBlock().getLocation().getBlockZ();
+			world = e.getClickedBlock().getWorld().getName();
+			
+			p.sendMessage(Prefix + "§2Position 1 gesetzt!");
+			
+			if(X1Spawn != 0 & X2Spawn != 0){
+				p.sendMessage(Prefix + "§bSpawn Selection abgeschlossen!");
+				p.sendMessage(Prefix + "§cSpawn 1:");
+				p.sendMessage("§cX: " + X1Spawn + " §cY: " + Y1Spawn + " §cZ: " + Z1Spawn);
+				p.sendMessage(Prefix + "§cSpawn 2:");
+				p.sendMessage("§cX: " + X2Spawn + " §cY: " + Y2Spawn + " §cZ: " + Z2Spawn);
+				p.sendMessage(Prefix + "§2Daten annehmen ?");
+				
+				ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1 ,(short) 7);
+				ItemMeta meta = pane.getItemMeta();
+				meta.setDisplayName(" ");
+				pane.setItemMeta(meta);
+				for(int i = 0; i < 9; i++){
+					p.getInventory().setItem(i, pane);
+				}
+				
+				ItemStack wool_green = new ItemStack(Material.WOOL , 1 ,(short) 5);
+				ItemMeta wgmeta = wool_green.getItemMeta();
+				wgmeta.setDisplayName("§aAnnehmen");
+				wool_green.setItemMeta(wgmeta);
+				
+				ItemStack wool_red = new ItemStack(Material.WOOL , 1 ,(short) 14);
+				ItemMeta wrmeta = wool_red.getItemMeta();
+				wrmeta.setDisplayName("§cAblehnen");
+				wool_red.setItemMeta(wrmeta);
+				
+				p.getInventory().setItem(3, wool_green);
+				p.getInventory().setItem(5, wool_red);
+			
+			}
+			return;
+		}
+		
+		
+		
+		if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
+			
+			X2Spawn = e.getClickedBlock().getLocation().getBlockX();
+			Y2Spawn = e.getClickedBlock().getLocation().getBlockY();
+			Z2Spawn = e.getClickedBlock().getLocation().getBlockZ();
+			
+			p.sendMessage(Prefix + "§2Position 2 gesetzt!");
+			
+			if(X1Spawn != 0 & X2Spawn != 0){
+				p.sendMessage(Prefix + "§bSpawn Selection abgeschlossen!");
+				p.sendMessage(Prefix + "§cSpawn 1:");
+				p.sendMessage("§cX: " + X1Spawn + " §cY: " + Y1Spawn + " §cZ: " + Z1Spawn);
+				p.sendMessage(Prefix + "§cSpawn 2:");
+				p.sendMessage("§cX: " + X2Spawn + " §cY: " + Y2Spawn + " §cZ: " + Z2Spawn);
+				p.sendMessage(Prefix + "§2Daten annehmen ?");
+				
+				ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1 ,(short) 7);
+				ItemMeta meta = pane.getItemMeta();
+				meta.setDisplayName(" ");
+				pane.setItemMeta(meta);
+				for(int i = 0; i < 9; i++){
+					p.getInventory().setItem(i, pane);
+				}
+				
+				ItemStack wool_green = new ItemStack(Material.WOOL , 1 ,(short) 5);
+				ItemMeta wgmeta = wool_green.getItemMeta();
+				wgmeta.setDisplayName("§aAnnehmen");
+				wool_green.setItemMeta(wgmeta);
+				
+				ItemStack wool_red = new ItemStack(Material.WOOL , 1 ,(short) 14);
+				ItemMeta wrmeta = wool_red.getItemMeta();
+				wrmeta.setDisplayName("§cAblehnen");
+				wool_red.setItemMeta(wrmeta);
+				
+				p.getInventory().setItem(3, wool_green);
+				p.getInventory().setItem(5, wool_red);
+			
+			}
+			
+			return;
+			
+		}
+		
+		
+		
+		
+		
+		}
+		
+		
+		if(plugin.inSetupGame.contains(p)){
+		if(e.getAction() == Action.LEFT_CLICK_BLOCK){
+			X1Arena = e.getClickedBlock().getLocation().getBlockX();
+			Y1Arena = e.getClickedBlock().getLocation().getBlockY();
+			Z1Arena = e.getClickedBlock().getLocation().getBlockZ();
+			
+			p.sendMessage(Prefix + "§2Position 1 gesetzt!");
+			
+			if(X1Arena != 0 & X2Arena != 0){
+				p.sendMessage(Prefix + "§bArena Selection abgeschlossen!");
+				p.sendMessage(Prefix + "§cArena 1:");
+				p.sendMessage("§cX: " + X1Arena + " §cY: " + Y1Arena + " §cZ: " + Z1Arena);
+				p.sendMessage(Prefix + "§cArena 2:");
+				p.sendMessage("§cX: " + X2Arena + " §cY: " + Y2Arena + " §cZ: " + Z2Arena);
+				p.sendMessage(Prefix + "§2Daten annehmen ?");
+				
+				ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1 ,(short) 7);
+				ItemMeta meta = pane.getItemMeta();
+				meta.setDisplayName(" ");
+				pane.setItemMeta(meta);
+				for(int i = 0; i < 9; i++){
+					p.getInventory().setItem(i, pane);
+				}
+				
+				ItemStack wool_green = new ItemStack(Material.WOOL , 1 ,(short) 5);
+				ItemMeta wgmeta = wool_green.getItemMeta();
+				wgmeta.setDisplayName("§aAnnehmen");
+				wool_green.setItemMeta(wgmeta);
+				
+				ItemStack wool_red = new ItemStack(Material.WOOL , 1 ,(short) 14);
+				ItemMeta wrmeta = wool_red.getItemMeta();
+				wrmeta.setDisplayName("§cAblehnen");
+				wool_red.setItemMeta(wrmeta);
+				
+				p.getInventory().setItem(3, wool_green);
+				p.getInventory().setItem(5, wool_red);
+			
+			}
+			return;
+		}
+		
+		
+		
+		if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
+			
+			X2Arena = e.getClickedBlock().getLocation().getBlockX();
+			Y2Arena = e.getClickedBlock().getLocation().getBlockY();
+			Z2Arena = e.getClickedBlock().getLocation().getBlockZ();
+			
+			p.sendMessage(Prefix + "§2Position 2 gesetzt!");
+			
+			if(X1Arena != 0 & X2Arena != 0){
+				p.sendMessage(Prefix + "§bArena Selection abgeschlossen!");
+				p.sendMessage(Prefix + "§cArena 1:");
+				p.sendMessage("§cX: " + X1Arena + " §cY: " + Y1Arena + " §cZ: " + Z1Arena);
+				p.sendMessage(Prefix + "§cArena 2:");
+				p.sendMessage("§cX: " + X2Arena + " §cY: " + Y2Arena + " §cZ: " + Z2Arena);
+				p.sendMessage(Prefix + "§2Daten annehmen ?");
+				
+				ItemStack pane = new ItemStack(Material.STAINED_GLASS_PANE , 1 ,(short) 7);
+				ItemMeta meta = pane.getItemMeta();
+				meta.setDisplayName(" ");
+				pane.setItemMeta(meta);
+				for(int i = 0; i < 9; i++){
+					p.getInventory().setItem(i, pane);
+				}
+				
+				ItemStack wool_green = new ItemStack(Material.WOOL , 1 ,(short) 5);
+				ItemMeta wgmeta = wool_green.getItemMeta();
+				wgmeta.setDisplayName("§aAnnehmen");
+				wool_green.setItemMeta(wgmeta);
+				
+				ItemStack wool_red = new ItemStack(Material.WOOL , 1 ,(short) 14);
+				ItemMeta wrmeta = wool_red.getItemMeta();
+				wrmeta.setDisplayName("§cAblehnen");
+				wool_red.setItemMeta(wrmeta);
+				
+				p.getInventory().setItem(3, wool_green);
+				p.getInventory().setItem(5, wool_red);
+			
+			}
+			
+			return;
+			
+		}
+		
+		
+		
+		
+		
+		}
+		
+		
+		
+		
+		
+		
+		
+	  }
+		}catch(Exception e2){
+			
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@EventHandler
+	public void onuse(PlayerInteractEvent e){
+		try{
+		Player p = e.getPlayer();
+		if(plugin.inSetupSpawn.contains(p)){
+			if(e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK){
+				e.setCancelled(true);
+				
+				if(p.getInventory().getItemInHand().getItemMeta().getDisplayName().equalsIgnoreCase("§aAnnehmen")){
+					p.getInventory().clear();
+					p.sendMessage(Prefix + "§aTrage Daten in Config ein...");
+					
+					
+					scfg.set("X1", X1Spawn);
+					scfg.set("Y1", Y1Spawn);
+					scfg.set("Z1", Z1Spawn);
+					
+					scfg.set("X2", X2Spawn);
+					scfg.set("Y2", Y2Spawn);
+					scfg.set("Z2", Z2Spawn);
+					scfg.set("World", world);
+					
+					try {
+						scfg.save(spawn);
+					} catch (IOException e1) {
+						p.sendMessage(Prefix + "§cEs ist ein Fehler aufgetreten!");
+						return;
+					}
+					
+					p.sendMessage(Prefix + "§aDaten eingetragen!");
+					p.getInventory().clear();
+					plugin.inSetupSpawn.remove(p);
+					plugin.inSetupGame.add(p);
+					
+					Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+						
+						@Override
+						public void run() {
+							p.sendMessage(Prefix + "§bSchritt 2: §6Selektieren sie die Arena! (Mit der Eisen Axt)");
+							p.getInventory().setItem(4, plugin.createItemForPlayer(Material.IRON_AXE, "§6Selector", true));
+						}
+					}, 20*2);
+					
+				}
+				
+				if(p.getInventory().getItemInHand().getItemMeta().getDisplayName().equalsIgnoreCase("§cAblehnen")){
+					p.getInventory().clear();
+					p.sendMessage(Prefix + "§cBitte wählen sie den Spawn erneut aus.");
+					p.getInventory().setItem(4, plugin.createItemForPlayer(Material.IRON_AXE, "§6Selector", true));
+					X1Spawn = 0;
+					Y1Spawn = 0;
+					Z1Spawn = 0;
+					
+					X2Spawn = 0;
+					Y2Spawn = 0;
+					Z2Spawn = 0;
+					
+				}
+				
+				
+				
+				
+				
+			}
+		}
+		
+		
+		
+		
+		if(plugin.inSetupGame.contains(p)){
+			if(e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK){
+				e.setCancelled(true);
+				
+				if(p.getInventory().getItemInHand().getItemMeta().getDisplayName().equalsIgnoreCase("§aAnnehmen")){
+					p.getInventory().clear();
+					p.sendMessage(Prefix + "§aTrage Daten in Config ein...");
+					
+					
+					scfg.set("X3", X1Arena);
+					scfg.set("Y3", Y1Arena);
+					scfg.set("Z3", Z1Arena);
+					
+					scfg.set("X4", X2Arena);
+					scfg.set("Y4", Y2Arena);
+					scfg.set("Z4", Z2Arena);
+					
+					try {
+						scfg.save(spawn);
+					} catch (IOException e1) {
+						p.sendMessage(Prefix + "§cEs ist ein Fehler aufgetreten!");
+						return;
+					}
+					
+					p.sendMessage(Prefix + "§aDaten eingetragen!");
+					p.getInventory().clear();
+					plugin.inSetup.remove(p);
+					plugin.inSetupGame.remove(p);
+					
+					p.sendMessage(Prefix + "§2Setup erfolgreich.");
+					
+				}
+				
+				if(p.getInventory().getItemInHand().getItemMeta().getDisplayName().equalsIgnoreCase("§cAblehnen")){
+					p.getInventory().clear();
+					p.sendMessage(Prefix + "§cBitte wählen sie die Arena erneut aus.");
+					p.getInventory().setItem(4, plugin.createItemForPlayer(Material.IRON_AXE, "§6Selector", true));
+					X1Arena = 0;
+					Y1Arena = 0;
+					Z1Arena = 0;
+					
+					X2Arena = 0;
+					Y2Arena = 0;
+					Z2Arena = 0;
+					
+				}
+				
+				
+				
+				
+				
+			}
+		}
+		}catch(Exception e2){
+			
+		}
+	}
+	
+	@EventHandler
+	public void onInventory(InventoryOpenEvent e){
+		Player p = (Player) e.getPlayer();
+		if(plugin.inSetup.contains(p)){
+			e.setCancelled(true);
+		}
+	}
+	
+	
+	@EventHandler
+	public void onInventory(InventoryClickEvent e){
+		Player p = (Player) e.getWhoClicked();
+		if(plugin.inSetup.contains(p)){
+			e.setCancelled(true);
+			p.updateInventory();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+
+	
+	
+
+}
