@@ -1,0 +1,112 @@
+package Manager;
+
+import java.io.File;
+
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+
+import de.Ganto.SkyPvPManager.Main;
+
+public class LISTENER_Scoreboard implements Listener {
+
+	static File file3 = new File("plugins/SkyPvPManager/Scoreboard.yml");
+	static FileConfiguration cfg3 = YamlConfiguration.loadConfiguration(file3);
+	private static Main plugin;
+	int scheduler;
+
+	public LISTENER_Scoreboard(Main main) {
+		this.plugin = main;
+		Bukkit.getPluginManager().registerEvents(this, plugin);
+	}
+	
+	@EventHandler
+	public void onJoin(PlayerJoinEvent e){
+		Player p = e.getPlayer();
+		this.updateScoreboard(p);
+		
+		if(!Bukkit.getScheduler().isCurrentlyRunning(scheduler)){
+		scheduler = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+			
+			@Override
+			public void run() {
+				updateScoreboard(p);
+				
+			}
+		}, 0, cfg3.getInt("RefreshTime")*20);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void updateScoreboard(Player p){
+		Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
+		Objective obj = board.registerNewObjective("aaa", "bbb");
+		
+		
+		
+		int currentCoins = plugin.getCoins(p);
+		int deaths = plugin.getDeaths(p);
+		int kills = plugin.getKill(p);
+		double kd = (double) kills/(double) deaths;
+		
+		obj.setDisplayName(cfg3.getString("ScoreboardHeader").replace("&", "§"));
+		obj.setDisplaySlot(DisplaySlot.SIDEBAR);
+		
+		Score eight = obj.getScore("§7§n                             ");
+		Score seven = obj.getScore("            ");
+		Score six = obj.getScore("§8» §cKills: §f" + kills);
+		Score five = obj.getScore("     ");
+		Score four = obj.getScore("§8» §cDeaths: §f" + deaths);
+		Score three = obj.getScore("  ");
+		Score two = obj.getScore("§8» §cCoins: §f" + currentCoins);
+		Score one = obj.getScore("   ");
+		if(deaths == 0 | kills == 0){
+		Score kdr = obj.getScore("§8» §cK/D: §f-");
+		kdr.setScore(2);
+		}else{
+		Score kdr = obj.getScore("§8» §cK/D: §f" + plugin.runden(kd));
+		kdr.setScore(2);
+		}
+		Score kds = obj.getScore("§7§n                              ");
+		Score zero = obj.getScore("           ");
+		
+
+		eight.setScore(10);
+		seven.setScore(9);
+		six.setScore(8);
+		five.setScore(7);
+		four.setScore(6);
+		three.setScore(5);
+		two.setScore(4);
+		one.setScore(3);
+		kds.setScore(1);
+		zero.setScore(0);
+		
+		p.setScoreboard(board);
+		
+		
+		
+		
+	}
+	
+	
+	
+	
+}
