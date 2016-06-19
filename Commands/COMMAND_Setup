@@ -1,0 +1,81 @@
+package Commands;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.bukkit.Material;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+
+import de.Ganto.SkyPvPManager.Main;
+
+public class COMMAND_Setup implements CommandExecutor{
+
+	
+	private Main plugin;
+
+	public COMMAND_Setup(Main main) {
+		this.plugin = main;
+	}
+	
+	@Override
+	public boolean onCommand(CommandSender sender, Command cmd, String label,String[] args) {
+		HashMap<Player, Inventory> inventory = new HashMap<>();
+		
+		Player p = (Player) sender;
+		File file = new File("plugins/SkyPvPManager/messages.yml");
+		YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+		
+		File spawn = new File("plugins/SkyPvPManager/Spawn.yml");
+		File arena = new File("plugins/SkyPvPManager/Arena.yml");
+		
+		String Prefix = cfg.getString("Prefix").replace("&", "§");
+		
+		if(!(p.hasPermission("skypvp.admin"))){
+			p.sendMessage(Prefix + cfg.getString("NoPermissions"));
+		}
+		
+		p.setFlying(true);
+		if(plugin.inSetup.contains(p)){
+			plugin.inSetup.remove(p);
+			plugin.inSetupSpawn.remove(p);
+			plugin.inSetupGame.remove(p);
+			p.sendMessage(Prefix + "§4Setup gestoppt!");
+			p.getInventory().clear();
+			spawn.delete();
+			arena.delete();
+			return true;
+		}else{
+			plugin.inSetup.add(p);
+			p.getInventory().clear();
+		
+		}
+		
+		if(spawn.exists()){
+			p.sendMessage(Prefix + "§4Setup Datei gefunden! Lösche...");
+			spawn.delete();
+			p.sendMessage(Prefix + "§2Setup Datei gelöscht!");
+		}
+		
+		p.sendMessage(Prefix + "§2Setup gestartet!");
+		p.sendMessage(" ");
+		p.sendMessage(Prefix + "§cUm das Setup abzubrechen benutzen sie erneut /setup");
+		p.sendMessage(Prefix + "§bSchritt 1: §6Selektieren sie den Spawn! (Mit der Eisen Axt)");
+		plugin.inSetupSpawn.add(p);
+		p.getInventory().setItem(4, plugin.createItemForPlayer(Material.IRON_AXE, "§6Selector", true));
+		
+		
+		
+		return true;
+	}
+	
+	
+
+}
