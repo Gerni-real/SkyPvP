@@ -1,0 +1,122 @@
+package Manager;
+
+import java.io.File;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+
+import de.Ganto.SkyPvPManager.Main;
+
+public class LISTENER_PlayerDeath implements Listener {
+
+	
+	
+	private Main plugin;
+	
+
+	public LISTENER_PlayerDeath(Main main) {
+		this.plugin = main;
+		Bukkit.getPluginManager().registerEvents(this, plugin);
+	}
+	
+	
+	@EventHandler
+	public void onDeath(PlayerDeathEvent e){
+		File file = new File("plugins/SkyPvPManager/messages.yml");
+		YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+		Player p = e.getEntity().getPlayer();
+		Player killer = e.getEntity().getKiller();
+		plugin.addDeath(p);
+		
+		if(killer instanceof Player){
+			if(plugin.noDamage.contains(p)){
+				plugin.noDamage.remove(p);
+			}
+			if(killer == p){
+				e.setDeathMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("DeathGlobalMessageNotFromPlayer").replace("%player%", p.getName()).replace("&", "§").replace("oe", "ö"));
+				return;
+			}
+			if(killer.hasPermission("skypvp.vip")){
+				plugin.addCoins(killer, plugin.getConfig().getInt("KillCoinsPlus")*2);
+				killer.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("KillPrivateMessage").replace("&", "§").replace("%player%", p.getName()).replace("%coins%", String.valueOf(plugin.getConfig().getInt("KillCoinsPlus")*2)).replace("oe", "ö"));
+			}else{
+		plugin.addCoins(killer, plugin.getConfig().getInt("KillCoinsPlus"));
+		killer.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("KillPrivateMessage").replace("&", "§").replace("%player%", p.getName()).replace("%coins%", String.valueOf(plugin.getConfig().getInt("KillCoinsPlus"))).replace("oe", "ö"));
+			}
+		plugin.delCoins(p, plugin.getConfig().getInt("DeathCoinsMinus"));
+		plugin.addKill(killer);
+		e.setDeathMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("DeathGlobalMessage").replace("&", "§").replace("%killer%", killer.getName()).replace("%player%", p.getName()).replace("oe", "ö"));
+		p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("DeathPrivateMessage").replace("&", "§").replace("%player%", killer.getName()).replace("%coins%", String.valueOf(plugin.getConfig().getInt("DeathCoinsMinus"))).replace("oe", "ö"));
+		}else{
+			e.setDeathMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("DeathGlobalMessageNotFromPlayer").replace("%player%", p.getName()).replace("&", "§"));
+			return;
+		}
+		
+
+	}
+	
+	
+	
+	@EventHandler
+	public void onRespawn(PlayerRespawnEvent e){
+		Player p = e.getPlayer();
+		File file = new File("plugins/SkyPvPManager/Spawn.yml");
+		YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+		if(file.exists()){
+			if(cfg.contains("Spawn" + "." + "world") & cfg.contains("Spawn" + "." + ".x") & cfg.contains("Spawn" + "." + ".y") & cfg.contains("Spawn" + "." + ".z") & cfg.contains("Spawn" + "." + ".yaw") & cfg.contains("Spawn" + "." + ".pitch")){
+				String world = cfg.getString("Spawn" + "." + "world");
+				double x = cfg.getDouble("Spawn" + "." + ".x");
+				double y = cfg.getDouble("Spawn" + "." + ".y");
+				double z = cfg.getDouble("Spawn" + "." + ".z");
+				double yaw = cfg.getDouble("Spawn" + "." + ".yaw");
+				double pitch = cfg.getDouble("Spawn" + "." + ".pitch");
+				
+				Location lobby = new Location(Bukkit.getWorld(world), x, y, z);
+				lobby.setYaw((float) yaw);
+				lobby.setPitch((float) pitch);
+				e.setRespawnLocation(lobby);
+				
+				
+			}else{
+				File file2 = new File("plugins/SkyPvPManager/messages.yml");
+				YamlConfiguration cfg2 = YamlConfiguration.loadConfiguration(file2);
+				p.sendMessage(cfg2.getString("Prefix").replace("&", "§") + cfg2.getString("Error").replace("&", "§"));
+			}
+			
+		}else{
+			File file2 = new File("plugins/SkyPvPManager/messages.yml");
+			YamlConfiguration cfg2 = YamlConfiguration.loadConfiguration(file2);
+			p.sendMessage(cfg2.getString("Prefix").replace("&", "§") + cfg2.getString("Error").replace("&", "§"));
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerCommandPreprocessEvent(PlayerCommandPreprocessEvent e) {
+      Player p = e.getPlayer();
+              if (e.getMessage().toLowerCase().startsWith("/money")) {
+              e.setCancelled(true);
+      		   File file = new File("plugins/SkyPvPManager/messages.yml");
+    		  YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+              p.sendMessage(cfg.getString("Prefix").replace("&", "§") + cfg.getString("PleaseUseMoney").replace("&", "§"));
+        }
+    }
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+}
